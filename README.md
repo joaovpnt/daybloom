@@ -5,9 +5,20 @@ Você mora em uma pequena ilha com **oito moradores animais que têm vida própr
 personalidade, necessidades, rotina, memórias, emoções e amizades que evoluem
 mesmo quando você não está olhando.
 
-> Versão atual: **0.1 — Fundação jogável e primeira comunidade viva**
+> Versão atual: **0.2 — Refino visual, Blender e identidade artística**
 
-## O que já dá para fazer (0.1)
+## Novidades da 0.2
+
+- Visual novo: personagens, casas, vegetação e props modelados e animados no
+  **Blender** (gerados por código, veja [`docs/pipeline_blender.md`](docs/pipeline_blender.md)).
+- Mapa redesenhado com bairros, lago e píer, bosque, pomar, praias e mirante.
+- Moradores com expressões e animações que reagem às emoções reais da simulação.
+- Interface redesenhada, menu com a ilha em 3D e menu de Configurações.
+- Iluminação revista e câmera que deixa transparente o que tapa a jogadora.
+
+Direção de arte e decisões de iluminação: [`docs/direcao_de_arte.md`](docs/direcao_de_arte.md).
+
+## O que já dá para fazer
 
 - Explorar uma ilha 3D com praça, fonte, nove casas, lago com píer, praia, jardim
   comunitário, mirante, pomar, bosque, coreto, quiosque e fogueira.
@@ -30,6 +41,7 @@ mesmo quando você não está olhando.
 |---|---|---|
 | Windows 10/11 64 bits | plataforma | sim |
 | [Godot 4.7](https://godotengine.org/download) | motor do jogo | sim |
+| [Blender 5.2 LTS](https://www.blender.org/download/) | só para regenerar os modelos 3D | não |
 | Python 3.10+ | backend local | sim (para salvar) |
 | [MongoDB Community Server](https://www.mongodb.com/try/download/community) | persistência | sim (para salvar) |
 | [Ollama](https://ollama.com) + `qwen3:4b` | conversas por IA | não |
@@ -77,6 +89,8 @@ jogo e desliga o backend quando você fecha o Daybloom.
 | F5 | salvar |
 | Esc | pausa / fechar painéis |
 | Roda do mouse | zoom |
+| F1 | mostrar a dica de controles |
+| F3 | painel de diagnóstico (backend, MongoDB, Ollama, FPS) |
 
 A partida também é salva automaticamente a cada nova manhã e ao fechar a janela.
 Se o salvamento falhar, o jogo avisa claramente e **não** finge que salvou.
@@ -136,6 +150,10 @@ scripts\executar_testes.bat
   rotinas, interações sociais com proximidade real, afinidade, memórias,
   inventário, coleta, presentes, diálogos, persistência completa sem duplicação e
   integração com a cena (navegação, colisão, conversa e rotina autônoma).
+- **Visual (0.2)**: todos os modelos `.glb`, animações e expressões, materiais
+  compartilhados, interface em 1280×720 a 2560×1440, caminhos para todos os lugares do
+  mapa novo, transparência de oclusão da câmera, reação visual a presentes e
+  abertura de um save real da 0.1.
 
 ## Estrutura
 
@@ -150,13 +168,16 @@ game/               projeto Godot 4.7 (GDScript tipado)
     autoload/       EventBus, GameClock, ApiClient, GameState, SaveManager
     sim/            simulação pura: NpcState, UtilityBrain, SocialRules,
                     RelationshipSystem, MemorySystem, IslandJournal, Inventory
-    npc/            definição, ator físico, diretor e construtor de personagens
-    world/          layout, construtor da ilha, dia/noite, recursos
+    npc/            definição, ator físico, diretor, visual animado e balões de emoção
+    world/          terreno, layout, construtor da ilha, modelos, dia/noite, recursos
     dialogue/       contexto do modelo e diálogos clássicos
     save/           interface de persistência (API e arquivo local), migração
     ui/             tema, HUD, inventário, diário, diálogo, pausa, menu
   tests/            testes headless (test_runner.tscn)
-docs/               arquitetura, moradores, formato do save, relatório e changelog
+  assets/           modelos .glb, retratos, ícones e fontes
+assets/blender/     fontes .blend geradas pelos scripts
+tools/blender/      geração, exportação e validação dos modelos (bpy)
+docs/               arquitetura, moradores, save, pipeline Blender, direção de arte, changelog
 scripts/            scripts Windows
 ```
 
@@ -167,8 +188,9 @@ Mais detalhes em [`docs/arquitetura.md`](docs/arquitetura.md),
 
 - `main` — versões estáveis
 - `develop` — integração
-- `feature/0.1-fundacao-jogavel` — esta versão
+- `feature/0.1-fundacao-jogavel` — 0.1
+- `feature/0.2-refino-visual-blender` — esta versão
 
-Próximas: `feature/0.2-atividades-e-progresso`, `0.3-ia-social-avancada`,
-`0.4-memorias-e-personalidade`, `0.5-dialogos-inteligentes`,
-`0.6-economia-e-comunidade`, `0.7-decoracao-e-personalizacao`, `0.8-eventos-e-mundo-vivo`.
+Próximas: `0.3-atividades-e-progresso`, `0.4-ia-social-avancada`,
+`0.5-memorias-e-personalidade`, `0.6-dialogos-inteligentes`,
+`0.7-economia-e-comunidade`, `0.8-decoracao-e-personalizacao`, `0.9-eventos-e-mundo-vivo`.
