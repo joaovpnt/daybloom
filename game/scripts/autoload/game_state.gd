@@ -3,7 +3,7 @@ extends Node
 ## e conecta a simulação ao relógio e ao barramento de eventos.
 
 const SCHEMA_VERSION := 1
-const GAME_VERSION := "0.1.0"
+const GAME_VERSION := "0.2.0"
 const DEFAULT_SLOT := "slot1"
 const PLAYER_SPAWN := Vector3(2.0, 0.0, 15.5)
 
@@ -42,7 +42,7 @@ func new_game(player_name: String, island_name: String, seed_value: int = 0) -> 
 	sim.setup_new(defs, player_id, player_name.strip_edges() if player_name.strip_edges() != "" else "Jogadora", seed_value)
 	inventory.load_from([])
 	_init_resources([])
-	player_position = PLAYER_SPAWN
+	player_position = Places.house_door("casa_jogadora") + Vector3(0, 0, 1.2)
 	player_rotation = PI
 	session_active = true
 
