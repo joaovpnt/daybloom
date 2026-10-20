@@ -1,0 +1,657 @@
+{
+  "glb": [
+    {
+      "file": "game\\assets\\models\\buildings\\casa_bento.glb",
+      "verts": 12182,
+      "materials": 19,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_celeste.glb",
+      "verts": 11884,
+      "materials": 25,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_jogadora.glb",
+      "verts": 12116,
+      "materials": 23,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_lila.glb",
+      "verts": 13442,
+      "materials": 21,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_marina.glb",
+      "verts": 11342,
+      "materials": 16,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_otavio.glb",
+      "verts": 5634,
+      "materials": 15,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_pipa.glb",
+      "verts": 10932,
+      "materials": 24,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_ravena.glb",
+      "verts": 9176,
+      "materials": 21,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\buildings\\casa_tobias.glb",
+      "verts": 21528,
+      "materials": 21,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\player.glb",
+      "verts": 9906,
+      "materials": 15,
+      "actions": [
+        "happy",
+        "idle",
+        "interact",
+        "run",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_bento.glb",
+      "verts": 7540,
+      "materials": 10,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_celeste.glb",
+      "verts": 14908,
+      "materials": 11,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_lila.glb",
+      "verts": 7236,
+      "materials": 10,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_marina.glb",
+      "verts": 6148,
+      "materials": 9,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_otavio.glb",
+      "verts": 7207,
+      "materials": 11,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_pipa.glb",
+      "verts": 6772,
+      "materials": 11,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_ravena.glb",
+      "verts": 7612,
+      "materials": 14,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\characters\\villager_tobias.glb",
+      "verts": 8196,
+      "materials": 10,
+      "actions": [
+        "happy",
+        "idle",
+        "sad",
+        "surprised",
+        "talk",
+        "walk"
+      ],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\bush_a.glb",
+      "verts": 1200,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\bush_b.glb",
+      "verts": 1200,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\bush_flower_pink.glb",
+      "verts": 1608,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\bush_flower_yellow.glb",
+      "verts": 1608,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\fern.glb",
+      "verts": 518,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flower_campanula.glb",
+      "verts": 199,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flower_girassol.glb",
+      "verts": 407,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flower_margarida.glb",
+      "verts": 329,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flower_tulipa_coral.glb",
+      "verts": 199,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flowers_campanula_cluster.glb",
+      "verts": 796,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flowers_girassol_cluster.glb",
+      "verts": 1628,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flowers_margarida_cluster.glb",
+      "verts": 1316,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\flowers_tulipa_coral_cluster.glb",
+      "verts": 796,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\grass_tuft_a.glb",
+      "verts": 84,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\grass_tuft_b.glb",
+      "verts": 84,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\lily_pad.glb",
+      "verts": 80,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\log.glb",
+      "verts": 282,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\mushrooms.glb",
+      "verts": 486,
+      "materials": 4,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\reeds.glb",
+      "verts": 162,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\rock_a.glb",
+      "verts": 120,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\rock_b.glb",
+      "verts": 120,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\rock_c.glb",
+      "verts": 120,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\stump.glb",
+      "verts": 96,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_fruit_maca.glb",
+      "verts": 2490,
+      "materials": 5,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_fruit_pessego.glb",
+      "verts": 2490,
+      "materials": 5,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_pine_a.glb",
+      "verts": 264,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_pine_b.glb",
+      "verts": 264,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_round_a.glb",
+      "verts": 2022,
+      "materials": 4,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_round_b.glb",
+      "verts": 2022,
+      "materials": 4,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\environment\\tree_round_c.glb",
+      "verts": 2022,
+      "materials": 4,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\barrel.glb",
+      "verts": 184,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\beach_umbrella.glb",
+      "verts": 314,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\bench.glb",
+      "verts": 1184,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\bookshelf.glb",
+      "verts": 5928,
+      "materials": 8,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\campfire.glb",
+      "verts": 562,
+      "materials": 4,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\crate.glb",
+      "verts": 288,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\dock.glb",
+      "verts": 1608,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\easel.glb",
+      "verts": 216,
+      "materials": 6,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\fence_segment.glb",
+      "verts": 1316,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\flower_pot.glb",
+      "verts": 220,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\fountain.glb",
+      "verts": 720,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\gazebo.glb",
+      "verts": 420,
+      "materials": 4,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\item_branch.glb",
+      "verts": 52,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\item_maca_verde.glb",
+      "verts": 176,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\item_pessego.glb",
+      "verts": 176,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\item_shell.glb",
+      "verts": 290,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\item_starfish.glb",
+      "verts": 122,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\item_stone.glb",
+      "verts": 100,
+      "materials": 1,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\lamp_post.glb",
+      "verts": 91,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\market_stall.glb",
+      "verts": 1084,
+      "materials": 5,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\notice_board.glb",
+      "verts": 1084,
+      "materials": 9,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\picnic_table.glb",
+      "verts": 836,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\signpost.glb",
+      "verts": 644,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\swing.glb",
+      "verts": 344,
+      "materials": 3,
+      "actions": [],
+      "issues": []
+    },
+    {
+      "file": "game\\assets\\models\\props\\telescope.glb",
+      "verts": 70,
+      "materials": 2,
+      "actions": [],
+      "issues": []
+    }
+  ],
+  "blend": [
+    {
+      "file": "assets\\blender\\characters\\player\\player.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\bento.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\celeste.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\lila.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\marina.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\otavio.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\pipa.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\ravena.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\characters\\villagers\\tobias.blend",
+      "collections": 1,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\environment\\buildings\\buildings.blend",
+      "collections": 9,
+      "objects": 9,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\environment\\props\\props.blend",
+      "collections": 25,
+      "objects": 25,
+      "issues": []
+    },
+    {
+      "file": "assets\\blender\\environment\\vegetation\\vegetation.blend",
+      "collections": 30,
+      "objects": 30,
+      "issues": []
+    }
+  ],
+  "summary": {
+    "glb": 73,
+    "blend": 12,
+    "problems": 0
+  }
+}
