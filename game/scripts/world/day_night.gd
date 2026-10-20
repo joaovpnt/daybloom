@@ -17,8 +17,8 @@ const KEYS := [
 	[6.5, Color(0.42, 0.58, 0.84), Color(1.0, 0.74, 0.58), Color(1.0, 0.74, 0.52), 0.55, 0.30],
 	[9.0, Color(0.30, 0.56, 0.90), Color(0.70, 0.84, 0.96), Color(1.0, 0.95, 0.86), 1.0, 0.34],
 	[15.0, Color(0.28, 0.54, 0.90), Color(0.72, 0.84, 0.96), Color(1.0, 0.93, 0.82), 0.95, 0.34],
-	[17.8, Color(0.36, 0.42, 0.74), Color(1.0, 0.62, 0.45), Color(1.0, 0.62, 0.36), 0.75, 0.30],
-	[19.4, Color(0.16, 0.16, 0.40), Color(0.62, 0.38, 0.52), Color(0.95, 0.50, 0.42), 0.14, 0.28],
+	[17.8, Color(0.38, 0.48, 0.80), Color(1.0, 0.74, 0.60), Color(1.0, 0.82, 0.66), 0.78, 0.32],
+	[19.4, Color(0.18, 0.18, 0.42), Color(0.66, 0.44, 0.56), Color(0.95, 0.58, 0.50), 0.16, 0.28],
 	[21.0, Color(0.07, 0.09, 0.24), Color(0.18, 0.22, 0.40), Color(0.55, 0.62, 0.95), 0.0, 0.32],
 	[24.0, Color(0.06, 0.08, 0.22), Color(0.16, 0.20, 0.38), Color(0.55, 0.62, 0.95), 0.0, 0.32],
 ]
@@ -48,19 +48,23 @@ func setup(p_lamps: Array, p_fire: Array) -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.tonemap_mode = Environment.TONE_MAPPER_AGX
-	env.tonemap_exposure = 1.0
+	# Filmic com exposição contida: cores pastel vivas sem estourar (comparado
+	# com AGX/ACES/Linear em Forward+ numa RTX 3050; ver docs/direcao_de_arte.md).
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 0.78
+	env.tonemap_white = 1.0
 	env.glow_enabled = true
 	env.glow_intensity = 0.3
 	env.glow_bloom = 0.0
 	env.glow_hdr_threshold = 1.2
 	env.fog_enabled = true
-	env.fog_density = 0.0025
+	env.fog_density = 0.0008
+	env.fog_sky_affect = 0.4
 	env.ssao_radius = 1.4
 	env.ssao_intensity = 1.6
 	env.ssao_power = 1.4
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.08
+	env.adjustment_saturation = 1.18
 	env.adjustment_contrast = 1.06
 	var we := WorldEnvironment.new()
 	we.environment = env
@@ -126,8 +130,10 @@ func apply_time(minute: float) -> void:
 	sky_mat.sky_horizon_color = s[1]
 	sky_mat.ground_horizon_color = s[1]
 	sky_mat.ground_bottom_color = (s[0] as Color).darkened(0.3)
-	env.ambient_light_color = (s[1] as Color).lerp(Color(1, 1, 1), 0.2)
-	env.ambient_light_energy = s[4]
+	# Sombras levemente azuladas (céu) em vez da cor do horizonte: evita que
+	# o entardecer deixe a ilha inteira marrom.
+	env.ambient_light_color = (s[1] as Color).lerp(s[0], 0.45).lerp(Color(1, 1, 1), 0.15)
+	env.ambient_light_energy = s[4] * 0.72
 	env.fog_light_color = s[1]
 	for lamp in lamps:
 		(lamp as OmniLight3D).light_energy = night * 1.6
