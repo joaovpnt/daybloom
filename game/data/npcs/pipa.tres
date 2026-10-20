@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "pipa"
+display_name = "Pipa"
+species = "esquilo"
+body_shape = "esquilo"
+pronoun = "ela"
+occupation = "carteira"
+home_id = "casa_pipa"
+primary_color = Color(0.86, 0.45, 0.22, 1)
+secondary_color = Color(0.98, 0.88, 0.72, 1)
+accent_color = Color(0.98, 0.8, 0.28, 1)
+height_scale = 0.8
+sociabilidade = 0.75
+gentileza = 0.55
+curiosidade = 0.85
+coragem = 0.65
+energia = 0.95
+personality_summary = "agitada, curiosa e falante; sabe de tudo que acontece na ilha"
+speech_style = "acelerada, curiosa, emenda um assunto no outro"
+catchphrase = "tenho novidade!"
+likes = PackedStringArray("fruta", "galho", "flor_amarela")
+dislikes = PackedStringArray("concha", "flor_azul")
+hobbies = PackedStringArray("passear", "conversar", "colher_frutas")
+favorite_place = "mural"
+work_place = "mural"
+work_activity = "entregando cartas"
+personal_goal = "Entregar cartas na porta de todos os moradores"
+personal_goal_id = "cartas_entregues"
+wake_hour = 6.0
+sleep_hour = 22.5
+work_start_hour = 8.0
+work_end_hour = 12.0

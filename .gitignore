@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+backend/.venv/
+.pytest_cache/
+*.egg-info/
+
+# Configuração local
+.env
+backend/.env
+
+# Godot
+game/.godot/
+game/export_presets.cfg
+*.translation
+game/tests/output/
+
+# Ferramentas baixadas localmente
+tools/godot/
+tools/godot_path.txt
+tools/*.bundle
+
+# Blender
+*.blend1
+assets/blender_run.log
+assets/generate_log.txt
+assets/previews/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Scripts temporários de desenvolvimento
+game/tests/_*

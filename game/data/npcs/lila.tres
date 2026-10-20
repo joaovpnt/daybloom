@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "lila"
+display_name = "Lila"
+species = "coelha"
+body_shape = "coelho"
+pronoun = "ela"
+occupation = "florista"
+home_id = "casa_lila"
+primary_color = Color(0.97, 0.95, 0.92, 1)
+secondary_color = Color(0.98, 0.72, 0.78, 1)
+accent_color = Color(0.72, 0.6, 0.92, 1)
+height_scale = 0.95
+sociabilidade = 0.85
+gentileza = 0.8
+curiosidade = 0.5
+coragem = 0.35
+energia = 0.7
+personality_summary = "extrovertida, carinhosa e otimista; adora cuidar dos outros"
+speech_style = "animada, usa diminutivos e muitas exclamações"
+catchphrase = "que coisa mais fofa!"
+likes = PackedStringArray("flor", "pessego", "flor_amarela")
+dislikes = PackedStringArray("galho", "azedo")
+hobbies = PackedStringArray("jardinagem", "conversar", "passear")
+favorite_place = "jardim"
+work_place = "jardim"
+work_activity = "plantando mudas"
+personal_goal = "Fazer o jardim comunitário florescer por completo"
+personal_goal_id = "jardim_florido"
+wake_hour = 6.5
+sleep_hour = 22.0
+work_start_hour = 8.0
+work_end_hour = 12.5

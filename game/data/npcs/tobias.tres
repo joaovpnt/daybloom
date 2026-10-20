@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "tobias"
+display_name = "Tobias"
+species = "urso"
+body_shape = "urso"
+pronoun = "ele"
+occupation = "padeiro"
+home_id = "casa_tobias"
+primary_color = Color(0.55, 0.36, 0.24, 1)
+secondary_color = Color(0.86, 0.72, 0.55, 1)
+accent_color = Color(0.96, 0.96, 0.92, 1)
+height_scale = 1.15
+sociabilidade = 0.55
+gentileza = 0.9
+curiosidade = 0.3
+coragem = 0.6
+energia = 0.35
+personality_summary = "calmo, generoso e paciente; um pouco tímido com novidades"
+speech_style = "tranquila, fala devagar e de forma acolhedora"
+catchphrase = "hum-hum, sem pressa"
+likes = PackedStringArray("fruta", "doce", "comida")
+dislikes = PackedStringArray("pedra", "raro")
+hobbies = PackedStringArray("culinaria", "contemplar_lago", "conversar")
+favorite_place = "quiosque"
+work_place = "quiosque"
+work_activity = "assando pães"
+personal_goal = "Criar a torta de pêssego perfeita"
+personal_goal_id = "torta_perfeita"
+wake_hour = 5.5
+sleep_hour = 21.0
+work_start_hour = 6.0
+work_end_hour = 11.5

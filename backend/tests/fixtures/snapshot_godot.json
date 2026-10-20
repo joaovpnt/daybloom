@@ -1,0 +1,2003 @@
+{
+  "game_version": "0.2.0",
+  "island_id": "ilha_1543c9f22c",
+  "journal": [
+    {
+      "day": 1,
+      "event_id": "evt_000001",
+      "kind": "community_event",
+      "minute": 480.0,
+      "participants": [],
+      "text": "Ana chegou à ilha Ilha Teste. Os oito moradores estão curiosos para conhecer a nova vizinha!"
+    },
+    {
+      "day": 2,
+      "event_id": "evt_000002",
+      "kind": "gift_received",
+      "minute": 615.0,
+      "participants": [
+        "jogadora_234c14abe1",
+        "lila"
+      ],
+      "text": "Ana deu uma Margarida para Lila, que adorou do presente."
+    },
+    {
+      "day": 2,
+      "event_id": "evt_000003",
+      "kind": "friendly_chat",
+      "minute": 700.0,
+      "participants": [
+        "ravena",
+        "tobias"
+      ],
+      "text": "Ravena e Tobias conversaram sobre as novidades da ilha perto do mural de recados."
+    },
+    {
+      "day": 2,
+      "event_id": "evt_000004",
+      "kind": "shared_activity",
+      "minute": 760.0,
+      "participants": [
+        "lila",
+        "bento"
+      ],
+      "text": "Lila e Bento fizeram um piquenique no parque."
+    },
+    {
+      "day": 2,
+      "event_id": "evt_000005",
+      "kind": "important_conversation",
+      "minute": 760.0,
+      "participants": [
+        "bento",
+        "jogadora_234c14abe1"
+      ],
+      "text": "Ana conversou com Bento pela primeira vez."
+    }
+  ],
+  "npcs": [
+    {
+      "activity": "se divertindo com Bento",
+      "cooldowns": {
+        "visit:bento": 2410.0
+      },
+      "emotion": {
+        "modifier": 0.4,
+        "mood": "radiante",
+        "valence": 0.756
+      },
+      "id": "lila",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_lila_1_1",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "lila"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        },
+        {
+          "consequences": [
+            "afinidade +8.0"
+          ],
+          "day": 2,
+          "description": "Recebeu uma Margarida de Ana e adorou.",
+          "event_ref": "evt_000002",
+          "id": "mem_lila_2_9",
+          "key": "gift|jogadora_234c14abe1|margarida|2",
+          "minute": 615.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "lila"
+          ],
+          "relevance": 0.8,
+          "type": "gift_received"
+        },
+        {
+          "consequences": [
+            "afinidade +5.7",
+            "confiança +3.0"
+          ],
+          "day": 2,
+          "description": "Fizeram Um Piquenique No Parque com Bento.",
+          "event_ref": "evt_000004",
+          "id": "mem_lila_2_12",
+          "key": "npc_interaction|bento|shared_activity|2",
+          "minute": 760.0,
+          "occurrences": 1,
+          "participants": [
+            "bento",
+            "lila"
+          ],
+          "relevance": 0.5,
+          "type": "npc_interaction"
+        }
+      ],
+      "name": "Lila",
+      "needs": {
+        "conforto": 78.0,
+        "diversao": 90.0,
+        "energia": 73.0,
+        "social": 52.0
+      },
+      "personal_goal": {
+        "description": "Fazer o jardim comunitário florescer por completo",
+        "id": "jardim_florido",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.35,
+        "curiosidade": 0.5,
+        "energia": 0.7,
+        "gentileza": 0.8,
+        "sociabilidade": 0.85
+      },
+      "position": {
+        "x": -26.0,
+        "y": 0.0,
+        "z": 17.9
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 43.7,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [
+            {
+              "affinity_delta": 5.7,
+              "day": 2,
+              "event_id": "evt_000004",
+              "kind": "shared_activity",
+              "minute": 760.0,
+              "trust_delta": 3.0
+            }
+          ],
+          "interactions": 1,
+          "last_meeting": {
+            "day": 2,
+            "minute": 760.0
+          },
+          "talk_day": 0,
+          "trust": 43.2
+        },
+        "celeste": {
+          "affinity": 34.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 38.6
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 8.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 2,
+          "gifts_today": 1,
+          "history": [
+            {
+              "affinity_delta": 8.0,
+              "day": 2,
+              "event_id": "evt_000002",
+              "kind": "gift",
+              "minute": 615.0,
+              "trust_delta": 3.0
+            }
+          ],
+          "interactions": 1,
+          "last_meeting": {
+            "day": 2,
+            "minute": 615.0
+          },
+          "talk_day": 0,
+          "trust": 13.0
+        },
+        "marina": {
+          "affinity": 12.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.8
+        },
+        "otavio": {
+          "affinity": 8.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 28.2
+        },
+        "pipa": {
+          "affinity": 18.7,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 32.48
+        },
+        "ravena": {
+          "affinity": -3.4,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 23.64
+        },
+        "tobias": {
+          "affinity": 10.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.0
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "coelha",
+      "state": "SOCIALIZING"
+    },
+    {
+      "activity": "conversando com Ravena",
+      "cooldowns": {
+        "visit:ravena": 2290.0
+      },
+      "emotion": {
+        "modifier": 0.0,
+        "mood": "alegre",
+        "valence": 0.422
+      },
+      "id": "tobias",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_tobias_1_2",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "tobias"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        },
+        {
+          "consequences": [
+            "afinidade +2.6",
+            "confiança +1.0"
+          ],
+          "day": 2,
+          "description": "Conversou com Ravena sobre as novidades da ilha.",
+          "event_ref": "evt_000003",
+          "id": "mem_tobias_2_11",
+          "key": "npc_interaction|ravena|friendly_chat|2",
+          "minute": 700.0,
+          "occurrences": 1,
+          "participants": [
+            "ravena",
+            "tobias"
+          ],
+          "relevance": 0.3,
+          "type": "npc_interaction"
+        }
+      ],
+      "name": "Tobias",
+      "needs": {
+        "conforto": 89.0,
+        "diversao": 57.0,
+        "energia": 79.0,
+        "social": 84.0
+      },
+      "personal_goal": {
+        "description": "Criar a torta de pêssego perfeita",
+        "id": "torta_perfeita",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.6,
+        "curiosidade": 0.3,
+        "energia": 0.35,
+        "gentileza": 0.9,
+        "sociabilidade": 0.55
+      },
+      "position": {
+        "x": 15.7,
+        "y": 0.0,
+        "z": -5.1
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 10.2,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.08
+        },
+        "celeste": {
+          "affinity": 30.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 37.0
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 10.0
+        },
+        "lila": {
+          "affinity": 1.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.4
+        },
+        "marina": {
+          "affinity": 11.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.4
+        },
+        "otavio": {
+          "affinity": 7.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.8
+        },
+        "pipa": {
+          "affinity": 10.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.0
+        },
+        "ravena": {
+          "affinity": -9.3,
+          "conflict_open": true,
+          "conflict_since": -600.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [
+            {
+              "affinity_delta": 2.6,
+              "day": 2,
+              "event_id": "evt_000003",
+              "kind": "friendly_chat",
+              "minute": 700.0,
+              "trust_delta": 1.0
+            }
+          ],
+          "interactions": 1,
+          "last_meeting": {
+            "day": 2,
+            "minute": 700.0
+          },
+          "talk_day": 0,
+          "trust": 21.24
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "urso",
+      "state": "SOCIALIZING"
+    },
+    {
+      "activity": "parado",
+      "cooldowns": {},
+      "emotion": {
+        "modifier": 0.0,
+        "mood": "tranquila",
+        "valence": 0.164
+      },
+      "id": "marina",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_marina_1_3",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "marina"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        }
+      ],
+      "name": "Marina",
+      "needs": {
+        "conforto": 77.0,
+        "diversao": 49.0,
+        "energia": 33.0,
+        "social": 44.0
+      },
+      "personal_goal": {
+        "description": "Completar a coleção de conchas raras da ilha",
+        "id": "colecao_conchas",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.85,
+        "curiosidade": 0.7,
+        "energia": 0.85,
+        "gentileza": 0.6,
+        "sociabilidade": 0.65
+      },
+      "position": {
+        "x": 31.6,
+        "y": 0.0,
+        "z": -3.1
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 16.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 31.4
+        },
+        "celeste": {
+          "affinity": 8.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 28.2
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 10.0
+        },
+        "lila": {
+          "affinity": 2.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.8
+        },
+        "otavio": {
+          "affinity": 2.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.8
+        },
+        "pipa": {
+          "affinity": 25.5,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 35.2
+        },
+        "ravena": {
+          "affinity": 2.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.8
+        },
+        "tobias": {
+          "affinity": 4.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 26.6
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "lontra",
+      "state": "IDLE"
+    },
+    {
+      "activity": "parado",
+      "cooldowns": {},
+      "emotion": {
+        "modifier": 0.0,
+        "mood": "dormindo",
+        "valence": 0.418
+      },
+      "id": "otavio",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_otavio_1_4",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "otavio"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        }
+      ],
+      "name": "Otávio",
+      "needs": {
+        "conforto": 79.0,
+        "diversao": 76.0,
+        "energia": 82.0,
+        "social": 78.0
+      },
+      "personal_goal": {
+        "description": "Mapear todas as constelações do céu da ilha",
+        "id": "mapa_estelar",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.4,
+        "curiosidade": 0.95,
+        "energia": 0.4,
+        "gentileza": 0.65,
+        "sociabilidade": 0.25
+      },
+      "position": {
+        "x": -11.3,
+        "y": 0.0,
+        "z": -23.1
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 9.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 28.6
+        },
+        "celeste": {
+          "affinity": 24.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 34.6
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 10.0
+        },
+        "lila": {
+          "affinity": 12.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.8
+        },
+        "marina": {
+          "affinity": 7.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.8
+        },
+        "pipa": {
+          "affinity": 5.1,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.04
+        },
+        "ravena": {
+          "affinity": 18.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 32.2
+        },
+        "tobias": {
+          "affinity": 5.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.0
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "coruja",
+      "state": "IDLE"
+    },
+    {
+      "activity": "parado",
+      "cooldowns": {},
+      "emotion": {
+        "modifier": 0.0,
+        "mood": "alegre",
+        "valence": 0.299
+      },
+      "id": "pipa",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_pipa_1_5",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "pipa"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        }
+      ],
+      "name": "Pipa",
+      "needs": {
+        "conforto": 72.0,
+        "diversao": 78.0,
+        "energia": 88.0,
+        "social": 46.0
+      },
+      "personal_goal": {
+        "description": "Entregar cartas na porta de todos os moradores",
+        "id": "cartas_entregues",
+        "progress": 0.3
+      },
+      "personality": {
+        "coragem": 0.65,
+        "curiosidade": 0.85,
+        "energia": 0.95,
+        "gentileza": 0.55,
+        "sociabilidade": 0.75
+      },
+      "position": {
+        "x": 4.0,
+        "y": 0.0,
+        "z": -16.1
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 5.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.0
+        },
+        "celeste": {
+          "affinity": 1.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.4
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 10.0
+        },
+        "lila": {
+          "affinity": 22.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 33.8
+        },
+        "marina": {
+          "affinity": 30.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 37.0
+        },
+        "otavio": {
+          "affinity": 6.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.4
+        },
+        "ravena": {
+          "affinity": 12.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.8
+        },
+        "tobias": {
+          "affinity": 1.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.4
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "esquilo",
+      "state": "IDLE"
+    },
+    {
+      "activity": "se divertindo com Lila",
+      "cooldowns": {
+        "visit:lila": 2410.0
+      },
+      "emotion": {
+        "modifier": 0.15,
+        "mood": "alegre",
+        "valence": 0.411
+      },
+      "id": "bento",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_bento_1_6",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "bento",
+            "jogadora_234c14abe1"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        },
+        {
+          "consequences": [
+            "afinidade +5.6",
+            "confiança +3.0"
+          ],
+          "day": 2,
+          "description": "Fizeram Um Piquenique No Parque com Lila.",
+          "event_ref": "evt_000004",
+          "id": "mem_bento_2_13",
+          "key": "npc_interaction|lila|shared_activity|2",
+          "minute": 760.0,
+          "occurrences": 1,
+          "participants": [
+            "bento",
+            "lila"
+          ],
+          "relevance": 0.5,
+          "type": "npc_interaction"
+        },
+        {
+          "consequences": [
+            "primeiro encontro"
+          ],
+          "day": 2,
+          "description": "Conheceu Ana e conversaram pela primeira vez.",
+          "event_ref": "evt_000005",
+          "id": "mem_bento_2_14",
+          "key": "first_talk|jogadora_234c14abe1",
+          "minute": 760.0,
+          "occurrences": 1,
+          "participants": [
+            "bento",
+            "jogadora_234c14abe1"
+          ],
+          "relevance": 0.75,
+          "type": "important_conversation"
+        }
+      ],
+      "name": "Bento",
+      "needs": {
+        "conforto": 64.0,
+        "diversao": 77.0,
+        "energia": 75.0,
+        "social": 61.0
+      },
+      "personal_goal": {
+        "description": "Compor uma canção para cada morador da ilha",
+        "id": "cancoes",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.5,
+        "curiosidade": 0.45,
+        "energia": 0.55,
+        "gentileza": 0.7,
+        "sociabilidade": 0.8
+      },
+      "position": {
+        "x": 31.3,
+        "y": 0.0,
+        "z": 11.9
+      },
+      "relationships": {
+        "celeste": {
+          "affinity": 12.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.8
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 3.6,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [
+            {
+              "affinity_delta": 3.6,
+              "day": 2,
+              "event_id": "evt_000005",
+              "kind": "conversation",
+              "minute": 760.0,
+              "trust_delta": 1.5
+            }
+          ],
+          "interactions": 1,
+          "last_meeting": {
+            "day": 2,
+            "minute": 760.0
+          },
+          "talk_day": 2,
+          "trust": 11.5
+        },
+        "lila": {
+          "affinity": 37.9,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [
+            {
+              "affinity_delta": 5.6,
+              "day": 2,
+              "event_id": "evt_000004",
+              "kind": "shared_activity",
+              "minute": 760.0,
+              "trust_delta": 3.0
+            }
+          ],
+          "interactions": 1,
+          "last_meeting": {
+            "day": 2,
+            "minute": 760.0
+          },
+          "talk_day": 0,
+          "trust": 40.92
+        },
+        "marina": {
+          "affinity": 13.6,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 30.44
+        },
+        "otavio": {
+          "affinity": 7.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.8
+        },
+        "pipa": {
+          "affinity": 8.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 28.2
+        },
+        "ravena": {
+          "affinity": 7.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.8
+        },
+        "tobias": {
+          "affinity": 12.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.8
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "sapo",
+      "state": "SOCIALIZING"
+    },
+    {
+      "activity": "conversando com Tobias",
+      "cooldowns": {
+        "visit:tobias": 2290.0
+      },
+      "emotion": {
+        "modifier": 0.0,
+        "mood": "alegre",
+        "valence": 0.316
+      },
+      "id": "ravena",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_ravena_1_7",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "jogadora_234c14abe1",
+            "ravena"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        },
+        {
+          "consequences": [
+            "afinidade +2.3",
+            "confiança +1.0"
+          ],
+          "day": 2,
+          "description": "Conversou com Tobias sobre as novidades da ilha.",
+          "event_ref": "evt_000003",
+          "id": "mem_ravena_2_10",
+          "key": "npc_interaction|tobias|friendly_chat|2",
+          "minute": 700.0,
+          "occurrences": 1,
+          "participants": [
+            "ravena",
+            "tobias"
+          ],
+          "relevance": 0.3,
+          "type": "npc_interaction"
+        }
+      ],
+      "name": "Ravena",
+      "needs": {
+        "conforto": 81.0,
+        "diversao": 71.0,
+        "energia": 89.0,
+        "social": 55.0
+      },
+      "personal_goal": {
+        "description": "Pintar a paisagem perfeita da ilha",
+        "id": "paisagem_perfeita",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.85,
+        "curiosidade": 0.75,
+        "energia": 0.65,
+        "gentileza": 0.3,
+        "sociabilidade": 0.4
+      },
+      "position": {
+        "x": -28.3,
+        "y": 0.0,
+        "z": -10.1
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 2.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.8
+        },
+        "celeste": {
+          "affinity": 3.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 26.2
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 10.0
+        },
+        "lila": {
+          "affinity": -4.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 23.4
+        },
+        "marina": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.0
+        },
+        "otavio": {
+          "affinity": 15.3,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 31.12
+        },
+        "pipa": {
+          "affinity": 9.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 28.6
+        },
+        "tobias": {
+          "affinity": -11.7,
+          "conflict_open": true,
+          "conflict_since": -600.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [
+            {
+              "affinity_delta": 2.3,
+              "day": 2,
+              "event_id": "evt_000003",
+              "kind": "friendly_chat",
+              "minute": 700.0,
+              "trust_delta": 1.0
+            }
+          ],
+          "interactions": 1,
+          "last_meeting": {
+            "day": 2,
+            "minute": 700.0
+          },
+          "talk_day": 0,
+          "trust": 20.4
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "raposa",
+      "state": "SOCIALIZING"
+    },
+    {
+      "activity": "parado",
+      "cooldowns": {},
+      "emotion": {
+        "modifier": 0.0,
+        "mood": "alegre",
+        "valence": 0.374
+      },
+      "id": "celeste",
+      "inside_home": false,
+      "memories": [
+        {
+          "consequences": [
+            "nova_moradora"
+          ],
+          "day": 1,
+          "description": "Ana chegou para morar na ilha.",
+          "event_ref": "evt_000001",
+          "id": "mem_celeste_1_8",
+          "key": "chegada_jogadora",
+          "minute": 480.0,
+          "occurrences": 1,
+          "participants": [
+            "celeste",
+            "jogadora_234c14abe1"
+          ],
+          "relevance": 0.7,
+          "type": "community_event"
+        }
+      ],
+      "name": "Dona Celeste",
+      "needs": {
+        "conforto": 85.0,
+        "diversao": 76.0,
+        "energia": 81.0,
+        "social": 52.0
+      },
+      "personal_goal": {
+        "description": "Costurar uma colcha com retalhos de todos os moradores",
+        "id": "colcha",
+        "progress": 0.0
+      },
+      "personality": {
+        "coragem": 0.25,
+        "curiosidade": 0.35,
+        "energia": 0.25,
+        "gentileza": 0.95,
+        "sociabilidade": 0.6
+      },
+      "position": {
+        "x": -15.6,
+        "y": 0.0,
+        "z": 31.9
+      },
+      "relationships": {
+        "bento": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.0
+        },
+        "jogadora_234c14abe1": {
+          "affinity": 0.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 10.0
+        },
+        "lila": {
+          "affinity": 28.9,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 36.56
+        },
+        "marina": {
+          "affinity": 10.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 29.0
+        },
+        "otavio": {
+          "affinity": 20.4,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 33.16
+        },
+        "pipa": {
+          "affinity": 2.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 25.8
+        },
+        "ravena": {
+          "affinity": 6.0,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 27.4
+        },
+        "tobias": {
+          "affinity": 25.5,
+          "conflict_open": false,
+          "conflict_since": 0.0,
+          "gift_day": 0,
+          "gifts_today": 0,
+          "history": [],
+          "interactions": 0,
+          "last_meeting": null,
+          "talk_day": 0,
+          "trust": 35.2
+        }
+      },
+      "rotation_y": 0.0,
+      "species": "ovelha",
+      "state": "IDLE"
+    }
+  ],
+  "player": {
+    "id": "jogadora_234c14abe1",
+    "inventory": [
+      {
+        "count": 2,
+        "item_id": "margarida"
+      },
+      {
+        "count": 2,
+        "item_id": "concha"
+      },
+      {
+        "count": 1,
+        "item_id": "tulipa_coral"
+      }
+    ],
+    "name": "Ana",
+    "position": {
+      "x": 13.0,
+      "y": 0.0,
+      "z": 30.6
+    },
+    "rotation_y": 3.142
+  },
+  "player_id": "jogadora_234c14abe1",
+  "save_slot_id": "slot1",
+  "saved_at": "2026-10-20T20:55:08Z",
+  "schema_version": 1,
+  "world": {
+    "day": 2,
+    "event_seq": 5,
+    "island_name": "Ilha Teste",
+    "minute": 760.0,
+    "pair_cooldowns": {
+      "bento+lila": 2350.0,
+      "journal:ravena+tobias": 2500.0,
+      "ravena+tobias": 2230.0
+    },
+    "resources": [
+      {
+        "available": true,
+        "id": "concha_01",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_02",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_03",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_04",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_05",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_06",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_07",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_08",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_09",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_10",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_11",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "concha_12",
+        "item_id": "concha",
+        "kind": "shell",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_01",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": false,
+        "id": "flor_02",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 3
+      },
+      {
+        "available": true,
+        "id": "flor_03",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_04",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_05",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_06",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_07",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_08",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_09",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_10",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_11",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_12",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_13",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_14",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_15",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_16",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_17",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_18",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_19",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_20",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_21",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_22",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_23",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_24",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_25",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_26",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_27",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_28",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_29",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "flor_30",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "fruta_01",
+        "item_id": "pessego",
+        "kind": "fruit",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "fruta_02",
+        "item_id": "maca_verde",
+        "kind": "fruit",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "fruta_03",
+        "item_id": "pessego",
+        "kind": "fruit",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "fruta_04",
+        "item_id": "maca_verde",
+        "kind": "fruit",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "fruta_05",
+        "item_id": "pessego",
+        "kind": "fruit",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "fruta_06",
+        "item_id": "maca_verde",
+        "kind": "fruit",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_01",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_02",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_03",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_04",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_05",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_06",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_07",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_08",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "galho_09",
+        "item_id": "galho",
+        "kind": "branch",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "jardim_01",
+        "item_id": "margarida",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "jardim_02",
+        "item_id": "tulipa_coral",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "jardim_03",
+        "item_id": "campanula",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "jardim_04",
+        "item_id": "girassol",
+        "kind": "flower",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "pedra_01",
+        "item_id": "pedra_lisa",
+        "kind": "stone",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "pedra_02",
+        "item_id": "pedra_lisa",
+        "kind": "stone",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "pedra_03",
+        "item_id": "pedra_lisa",
+        "kind": "stone",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "pedra_04",
+        "item_id": "pedra_lisa",
+        "kind": "stone",
+        "respawn_day": 0
+      },
+      {
+        "available": true,
+        "id": "pedra_05",
+        "item_id": "pedra_lisa",
+        "kind": "stone",
+        "respawn_day": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "marina"
+display_name = "Marina"
+species = "lontra"
+body_shape = "lontra"
+pronoun = "ela"
+occupation = "guarda-praia"
+home_id = "casa_marina"
+primary_color = Color(0.45, 0.31, 0.22, 1)
+secondary_color = Color(0.93, 0.84, 0.7, 1)
+accent_color = Color(0.25, 0.7, 0.72, 1)
+height_scale = 1.0
+sociabilidade = 0.65
+gentileza = 0.6
+curiosidade = 0.7
+coragem = 0.85
+energia = 0.85
+personality_summary = "aventureira, corajosa e competitiva; sempre em movimento"
+speech_style = "enérgica, fala rápido e usa gírias de praia"
+catchphrase = "bora nessa!"
+likes = PackedStringArray("concha", "praia", "raro")
+dislikes = PackedStringArray("doce", "flor_branca")
+hobbies = PackedStringArray("colecionar_conchas", "corrida", "contemplar_lago")
+favorite_place = "praia_leste"
+work_place = "praia_sul"
+work_activity = "vigiando a praia"
+personal_goal = "Completar a coleção de conchas raras da ilha"
+personal_goal_id = "colecao_conchas"
+wake_hour = 6.0
+sleep_hour = 23.0
+work_start_hour = 9.0
+work_end_hour = 14.0
