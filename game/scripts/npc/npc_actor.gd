@@ -15,9 +15,10 @@ var npc: NpcState
 var sim: Simulation
 var director: Node
 var agent: NavigationAgent3D
-var visual: Node3D
+var visual: CharacterVisual
 var name_label: Label3D
-var emote_label: Label3D
+var emote: EmoteBubble
+var label_height: float = 1.6
 
 var phase: Phase = Phase.NEEDS_DECISION
 var action: Dictionary = {}
@@ -49,8 +50,11 @@ func setup(p_npc: NpcState, p_sim: Simulation, p_director: Node) -> void:
 	shape.shape = capsule
 	shape.position = Vector3(0, 0.7, 0)
 	add_child(shape)
-	visual = CharacterBuilder.build_animal(npc.def)
+	visual = CharacterVisual.new()
+	visual.name = "Visual"
 	add_child(visual)
+	visual.setup("characters/villager_%s" % npc.id)
+	label_height = 1.45 * npc.def.height_scale + 0.25
 	agent = NavigationAgent3D.new()
 	agent.path_desired_distance = 0.6
 	agent.target_desired_distance = ARRIVE_DISTANCE
@@ -60,24 +64,20 @@ func setup(p_npc: NpcState, p_sim: Simulation, p_director: Node) -> void:
 	add_child(agent)
 	name_label = Label3D.new()
 	name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	name_label.font_size = 44
-	name_label.pixel_size = 0.0045
-	name_label.outline_size = 12
+	name_label.font = UiTheme.font_bold()
+	name_label.font_size = 40
+	name_label.pixel_size = 0.0042
+	name_label.outline_size = 14
 	name_label.modulate = Color(0.32, 0.22, 0.15)
 	name_label.outline_modulate = Color(1, 0.98, 0.92)
-	name_label.position = Vector3(0, 2.25 * npc.def.height_scale + 0.2, 0)
-	name_label.visibility_range_end = 20.0
-	name_label.no_depth_test = false
+	name_label.position = Vector3(0, label_height + 0.15, 0)
+	name_label.visibility_range_end = 11.0
+	name_label.visibility_range_end_margin = 2.0
+	name_label.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	add_child(name_label)
-	emote_label = Label3D.new()
-	emote_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	emote_label.font_size = 72
-	emote_label.pixel_size = 0.005
-	emote_label.outline_size = 14
-	emote_label.outline_modulate = Color(1, 1, 1)
-	emote_label.position = Vector3(0.0, 2.25 * npc.def.height_scale + 0.75, 0)
-	emote_label.visibility_range_end = 26.0
-	add_child(emote_label)
+	emote = EmoteBubble.new()
+	emote.position = Vector3(0.0, label_height + 0.7, 0)
+	add_child(emote)
 	add_to_group("interactable")
 	add_to_group("npc_actor")
 	global_position = npc.position
@@ -201,7 +201,7 @@ func _process_moving(delta: float) -> void:
 				return
 			_finish_action(false)
 			return
-	elif agent.is_navigation_finished() or global_position.distance_to(action["target_pos"]) <= ARRIVE_DISTANCE:
+	elif agent.is_navigation_finished() or _flat_distance(global_position, action["target_pos"]) <= ARRIVE_DISTANCE:
 		_arrive()
 		return
 	if _travel_time > MAX_TRAVEL_SECONDS:
@@ -221,6 +221,10 @@ func _process_moving(delta: float) -> void:
 	velocity.y = -0.5 if is_on_floor() else velocity.y - 20.0 * delta
 	move_and_slide()
 	_check_stuck(delta)
+
+
+static func _flat_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()
 
 
 func _check_stuck(delta: float) -> void:
@@ -327,6 +331,8 @@ func _process_talking(_delta: float) -> void:
 func _finish_action(completed: bool) -> void:
 	if completed:
 		sim.complete_activity(npc.id, action)
+		if action.get("kind", "") in ["work", "leisure"] and visible:
+			react("activity_done")
 	if npc.inside_home and action.get("kind", "") == "sleep":
 		_exit_home_visual()
 	velocity = Vector3.ZERO
@@ -368,6 +374,7 @@ func begin_player_talk(player: Node3D) -> void:
 	phase = Phase.TALKING_PLAYER
 	velocity = Vector3.ZERO
 	sim.set_npc_state(npc.id, "SOCIALIZING", "conversando com " + sim.player_name)
+	react("greet_player")
 	_update_label()
 
 
@@ -383,70 +390,94 @@ func end_player_talk() -> void:
 func _update_label() -> void:
 	if name_label == null:
 		return
-	name_label.text = "%s\n%s" % [npc.display_name(), npc.activity]
-	var emote := ""
+	name_label.text = npc.display_name()
+	var style := ""
 	if npc.state == "SOCIALIZING" and npc.partner_id != "":
 		var key := SocialRules.pair_key(npc.id, npc.partner_id)
 		var it: Dictionary = sim.active_interactions.get(key, {})
 		match it.get("kind", ""):
 			SocialRules.KIND_DISAGREEMENT:
-				emote = "!"
+				style = "angry"
 			SocialRules.KIND_RECONCILIATION:
-				emote = "♡"
+				style = "love"
 			SocialRules.KIND_SHARED:
-				emote = "♪"
+				style = "music"
 			_:
-				emote = "..."
+				style = "chat"
 	elif npc.state == "LEISURE":
-		emote = "♪"
-	elif npc.state == "RESTING" and not npc.inside_home:
-		emote = "~"
-	elif npc.mood.begins_with("chatead") or npc.mood == "triste":
-		emote = "…"
-	emote_label.text = emote
-	emote_label.modulate = Color(0.9, 0.3, 0.3) if emote == "!" else Color(0.95, 0.45, 0.6) if emote == "♡" else Color(0.35, 0.3, 0.4)
+		style = "music"
+	elif npc.mood == "triste" or npc.mood.begins_with("chatead"):
+		style = "sad"
+	emote.set_persistent(style)
+	visual.set_base_expression(expression_for_mood())
+
+
+## Expressão facial de base derivada do humor real do morador.
+func expression_for_mood() -> String:
+	var m := npc.mood
+	if npc.is_sleeping():
+		return "sleep"
+	if m == "radiante":
+		return "happy"
+	if m == "triste" or m.begins_with("chatead") or m.begins_with("solit"):
+		return "sad"
+	if m.begins_with("cansad"):
+		return "tired"
+	return "neutral"
+
+
+## Reações visuais a acontecimentos reais da simulação.
+func react(kind: String) -> void:
+	match kind:
+		"gift_loved":
+			visual.play_once("happy")
+			visual.flash_expression("happy", 3.0)
+			emote.flash("love", 2.5)
+		"gift_liked":
+			visual.flash_expression("happy", 2.0)
+			emote.flash("love", 1.5)
+		"gift_disliked":
+			visual.play_once("sad")
+			visual.flash_expression("sad", 3.0)
+			emote.flash("sad", 2.0)
+		"interaction_start":
+			visual.play_once("surprised")
+			emote.flash("surprise", 1.0)
+		"disagreement_start":
+			visual.play_once("surprised")
+			visual.flash_expression("angry", 4.0)
+			emote.flash("angry", 2.0)
+		"positive_end":
+			visual.play_once("happy")
+			visual.flash_expression("happy", 2.5)
+			emote.flash("love", 1.5)
+		"negative_end":
+			visual.flash_expression("sad", 5.0)
+			emote.flash("sad", 2.5)
+		"activity_done":
+			visual.flash_expression("happy", 1.5)
+			emote.flash("done", 1.4)
+		"greet_player":
+			visual.play_once("surprised")
+			visual.flash_expression("happy", 2.0)
+			emote.flash("surprise", 1.0)
 
 
 func refresh_label() -> void:
 	_update_label()
 
 
-func _animate(delta: float) -> void:
+func _animate(_delta: float) -> void:
 	var speed := Vector2(velocity.x, velocity.z).length()
-	var moving := speed > 0.2
-	if moving:
-		_walk_phase += delta * speed * 3.2
-	var swing := sin(_walk_phase) * (0.6 if moving else 0.0)
-	var t := Time.get_ticks_msec() * 0.001
-	var legl := visual.get_node_or_null("LegL") as Node3D
-	var legr := visual.get_node_or_null("LegR") as Node3D
-	if legl:
-		legl.rotation.x = swing
-	if legr:
-		legr.rotation.x = -swing
-	var body := visual.get_node("Body") as Node3D
-	var arml := body.get_node_or_null("ArmL") as Node3D
-	var armr := body.get_node_or_null("ArmR") as Node3D
-	var head := body.get_node_or_null("Head") as Node3D
-	var tail := body.get_node_or_null("Tail") as Node3D
-	if moving:
-		body.position.y = absf(sin(_walk_phase)) * 0.07
+	visual.talking = phase == Phase.SOCIAL or phase == Phase.TALKING_PLAYER
+	if speed > 0.2:
+		visual.play("walk", clampf(speed / WALK_SPEED, 0.6, 1.3))
+	elif visual.talking:
+		visual.play("talk")
+	elif expression_for_mood() == "sad" and phase == Phase.PERFORMING:
+		visual.play("sad")
 	else:
-		body.position.y = sin(t * 2.0 + position.x) * 0.012
-	var arm_swing := -swing * 0.8
-	if phase == Phase.PERFORMING and npc.state == "WORKING":
-		arm_swing = sin(t * 5.0) * 0.5 - 0.6
-	elif phase == Phase.SOCIAL or phase == Phase.TALKING_PLAYER:
-		arm_swing = sin(t * 3.0) * 0.25
-	if arml:
-		arml.rotation.x = arm_swing
-	if armr:
-		armr.rotation.x = -arm_swing if moving else arm_swing * 0.6
-	if head:
-		head.rotation.x = sin(t * 4.0) * 0.08 if phase == Phase.SOCIAL or phase == Phase.TALKING_PLAYER else 0.0
-		head.rotation.z = sin(t * 1.3 + position.z) * 0.04
-	if tail:
-		tail.rotation.y = sin(t * 3.0) * 0.3
+		visual.play("idle")
 
 
 # --- interação da jogadora ----------------------------------------------
@@ -458,7 +489,7 @@ func can_interact() -> bool:
 func get_interaction_text() -> String:
 	if npc.is_sleeping():
 		return "%s está dormindo" % npc.display_name()
-	return "Conversar com %s" % npc.display_name()
+	return "Conversar com %s · %s" % [npc.display_name(), npc.activity]
 
 
 func interact(player: Node) -> void:

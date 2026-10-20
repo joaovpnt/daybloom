@@ -28,6 +28,9 @@ func setup(p_sim: Simulation, parent: Node3D) -> void:
 		actor.setup(sim.npcs[npc_id], sim, self)
 		actors[npc_id] = actor
 	sim.npc_state_changed.connect(_on_state_changed)
+	sim.interaction_started.connect(_on_interaction_started_signal)
+	sim.interaction_finished.connect(_on_interaction_finished_signal)
+	EventBus.npc_reaction.connect(_on_npc_reaction)
 
 
 func get_actor(npc_id: String) -> NpcActor:
@@ -46,6 +49,26 @@ func on_interaction_started(a_id: String, b_id: String) -> void:
 		actor.phase = NpcActor.Phase.SOCIAL
 		actor.velocity = Vector3.ZERO
 		actor.refresh_label()
+
+
+func _on_interaction_started_signal(a_id: String, b_id: String, kind: String) -> void:
+	for id in [a_id, b_id]:
+		var actor: NpcActor = actors.get(id)
+		if actor and actor.visible:
+			actor.react("disagreement_start" if kind == SocialRules.KIND_DISAGREEMENT else "interaction_start")
+
+
+func _on_interaction_finished_signal(a_id: String, b_id: String, kind: String, _outcome: Dictionary) -> void:
+	for id in [a_id, b_id]:
+		var actor: NpcActor = actors.get(id)
+		if actor and actor.visible:
+			actor.react("negative_end" if kind == SocialRules.KIND_DISAGREEMENT else "positive_end")
+
+
+func _on_npc_reaction(npc_id: String, kind: String) -> void:
+	var actor: NpcActor = actors.get(npc_id)
+	if actor:
+		actor.react(kind)
 
 
 func _on_state_changed(npc_id: String, _state: String, _activity: String) -> void:

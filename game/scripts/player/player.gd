@@ -8,7 +8,7 @@ const ACCEL := 14.0
 const INTERACT_RANGE := 2.4
 const GRAVITY := 20.0
 
-var visual: Node3D
+var visual: CharacterVisual
 var input_enabled: bool = true
 ## Usado pelos testes para simular entrada sem teclado.
 var debug_input: Vector2 = Vector2.ZERO
@@ -28,8 +28,10 @@ func _ready() -> void:
 	shape.shape = capsule
 	shape.position = Vector3(0, 0.75, 0)
 	add_child(shape)
-	visual = CharacterBuilder.build_player()
+	visual = CharacterVisual.new()
+	visual.name = "Visual"
 	add_child(visual)
+	visual.setup("characters/player")
 	add_to_group("player")
 
 
@@ -74,23 +76,13 @@ func _physics_process(delta: float) -> void:
 	GameState.player_rotation = rotation.y
 
 
-func _animate(delta: float, speed: float) -> void:
-	var moving := speed > 0.3
-	if moving:
-		_walk_phase += delta * speed * 2.6
+func _animate(_delta: float, speed: float) -> void:
+	if speed > 5.6:
+		visual.play("run", clampf(speed / RUN_SPEED, 0.7, 1.3))
+	elif speed > 0.3:
+		visual.play("walk", clampf(speed / SPEED * 1.15, 0.6, 1.4))
 	else:
-		_walk_phase = lerpf(_walk_phase, round(_walk_phase / PI) * PI, delta * 6.0)
-	var swing := sin(_walk_phase) * (0.7 if moving else 0.0)
-	for part in ["LegL", "ArmR"]:
-		var n := visual.find_child(part, true, false) as Node3D
-		if n:
-			n.rotation.x = swing
-	for part in ["LegR", "ArmL"]:
-		var n2 := visual.find_child(part, true, false) as Node3D
-		if n2:
-			n2.rotation.x = -swing
-	var body := visual.get_node("Body") as Node3D
-	body.position.y = absf(sin(_walk_phase)) * 0.06 if moving else sin(Time.get_ticks_msec() * 0.003) * 0.01
+		visual.play("idle")
 
 
 func _update_target() -> void:
@@ -122,10 +114,18 @@ func try_interact() -> bool:
 		return false
 	_update_target()
 	if current_target and is_instance_valid(current_target):
+		if current_target is ResourceNode:
+			visual.play_once("interact")
 		current_target.interact(self)
 		_update_target()
 		return true
 	return false
+
+
+func set_talking(on: bool) -> void:
+	visual.talking = false
+	if on:
+		visual.flash_expression("happy", 1.5)
 
 
 func face_towards(p: Vector3) -> void:
