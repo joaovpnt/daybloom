@@ -12,15 +12,15 @@ var _last_update := -100.0
 
 # Paleta por hora: [hora, céu topo, horizonte, cor do sol, energia do sol, ambiente]
 const KEYS := [
-	[0.0, Color(0.05, 0.07, 0.2), Color(0.12, 0.15, 0.32), Color(0.5, 0.55, 0.9), 0.0, 0.22],
-	[5.0, Color(0.1, 0.12, 0.3), Color(0.35, 0.3, 0.45), Color(0.8, 0.6, 0.6), 0.08, 0.25],
-	[6.5, Color(0.45, 0.6, 0.85), Color(1.0, 0.72, 0.55), Color(1.0, 0.75, 0.55), 0.55, 0.32],
-	[9.0, Color(0.32, 0.6, 0.92), Color(0.72, 0.86, 0.97), Color(1.0, 0.95, 0.86), 0.95, 0.4],
-	[15.0, Color(0.3, 0.58, 0.92), Color(0.75, 0.86, 0.97), Color(1.0, 0.94, 0.84), 0.9, 0.4],
-	[18.0, Color(0.4, 0.45, 0.75), Color(1.0, 0.6, 0.45), Color(1.0, 0.6, 0.38), 0.6, 0.33],
-	[19.5, Color(0.15, 0.15, 0.38), Color(0.55, 0.35, 0.5), Color(0.9, 0.5, 0.45), 0.12, 0.27],
-	[21.0, Color(0.06, 0.08, 0.22), Color(0.14, 0.16, 0.34), Color(0.5, 0.55, 0.9), 0.0, 0.22],
-	[24.0, Color(0.05, 0.07, 0.2), Color(0.12, 0.15, 0.32), Color(0.5, 0.55, 0.9), 0.0, 0.22],
+	[0.0, Color(0.06, 0.08, 0.22), Color(0.16, 0.20, 0.38), Color(0.55, 0.62, 0.95), 0.0, 0.32],
+	[5.0, Color(0.12, 0.14, 0.32), Color(0.40, 0.34, 0.50), Color(0.85, 0.62, 0.60), 0.06, 0.32],
+	[6.5, Color(0.42, 0.58, 0.84), Color(1.0, 0.74, 0.58), Color(1.0, 0.74, 0.52), 0.55, 0.30],
+	[9.0, Color(0.30, 0.56, 0.90), Color(0.70, 0.84, 0.96), Color(1.0, 0.95, 0.86), 1.0, 0.34],
+	[15.0, Color(0.28, 0.54, 0.90), Color(0.72, 0.84, 0.96), Color(1.0, 0.93, 0.82), 0.95, 0.34],
+	[17.8, Color(0.36, 0.42, 0.74), Color(1.0, 0.62, 0.45), Color(1.0, 0.62, 0.36), 0.75, 0.30],
+	[19.4, Color(0.16, 0.16, 0.40), Color(0.62, 0.38, 0.52), Color(0.95, 0.50, 0.42), 0.14, 0.28],
+	[21.0, Color(0.07, 0.09, 0.24), Color(0.18, 0.22, 0.40), Color(0.55, 0.62, 0.95), 0.0, 0.32],
+	[24.0, Color(0.06, 0.08, 0.22), Color(0.16, 0.20, 0.38), Color(0.55, 0.62, 0.95), 0.0, 0.32],
 ]
 
 
@@ -48,24 +48,35 @@ func setup(p_lamps: Array, p_fire: Array) -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 0.85
-	env.tonemap_white = 1.4
+	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_exposure = 1.0
 	env.glow_enabled = true
 	env.glow_intensity = 0.3
 	env.glow_bloom = 0.0
 	env.glow_hdr_threshold = 1.2
 	env.fog_enabled = true
 	env.fog_density = 0.0025
-	env.ssao_enabled = true
-	env.ssao_radius = 1.2
-	env.ssao_intensity = 1.2
+	env.ssao_radius = 1.4
+	env.ssao_intensity = 1.6
+	env.ssao_power = 1.4
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.12
+	env.adjustment_saturation = 1.08
+	env.adjustment_contrast = 1.06
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
+	EventBus.settings_changed.connect(apply_settings)
+	apply_settings()
 	apply_time(GameClock.minute)
+
+
+func apply_settings() -> void:
+	env.ssao_enabled = Settings.ssao
+	env.glow_enabled = Settings.glow
+	sun.shadow_enabled = Settings.shadows > 0
+	sun.directional_shadow_max_distance = 55.0 if Settings.shadows < 2 else 80.0
+	sun.shadow_blur = 1.5
+	RenderingServer.directional_shadow_atlas_set_size(2048 if Settings.shadows < 2 else 4096, true)
 
 
 func _process(_delta: float) -> void:
@@ -110,7 +121,7 @@ func apply_time(minute: float) -> void:
 	sun.light_color = s[2]
 	sun.light_energy = s[3]
 	var night := night_factor(hour)
-	moon.light_energy = night * 0.35
+	moon.light_energy = night * 0.45
 	sky_mat.sky_top_color = s[0]
 	sky_mat.sky_horizon_color = s[1]
 	sky_mat.ground_horizon_color = s[1]
@@ -124,10 +135,6 @@ func apply_time(minute: float) -> void:
 		(fl as OmniLight3D).light_energy = 0.6 + night * 1.8
 	var glass := MaterialLib.window_glass()
 	glass.emission_energy_multiplier = night * 1.4
-	for bulb in get_tree().get_nodes_in_group("lamp_bulb") if is_inside_tree() else []:
-		var m: StandardMaterial3D = (bulb as MeshInstance3D).material_override
-		m.emission_enabled = true
-		m.emission = Color(1.0, 0.85, 0.5)
-		m.emission_energy_multiplier = night * 2.5
-	var water := MaterialLib.water()
-	water.set_shader_parameter("night", night * 0.8)
+	ModelLib.lamp_glass().emission_energy_multiplier = night * 3.0
+	MaterialLib.water().set_shader_parameter("night", night * 0.8)
+	MaterialLib.pond_water().set_shader_parameter("night", night * 0.8)

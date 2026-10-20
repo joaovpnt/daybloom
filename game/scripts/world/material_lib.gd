@@ -39,36 +39,81 @@ static func window_glass() -> StandardMaterial3D:
 	return m
 
 
-static func water() -> ShaderMaterial:
-	if _cache.has("water"):
-		return _cache["water"]
-	var shader := Shader.new()
-	shader.code = """
+const WATER_SHADER := """
 shader_type spatial;
-render_mode cull_disabled, specular_toon;
-uniform vec4 shallow : source_color = vec4(0.42, 0.85, 0.88, 1.0);
-uniform vec4 deep : source_color = vec4(0.16, 0.52, 0.78, 1.0);
-uniform float wave_strength = 0.05;
+render_mode cull_disabled, specular_schlick_ggx;
+uniform vec4 shallow : source_color = vec4(0.40, 0.82, 0.86, 1.0);
+uniform vec4 deep : source_color = vec4(0.14, 0.48, 0.74, 1.0);
+uniform vec4 foam_color : source_color = vec4(0.97, 0.99, 1.0, 1.0);
+uniform vec2 center = vec2(0.0, 0.0);
+uniform float shore_radius = 48.6;
+uniform float deep_radius = 75.0;
+uniform float foam_width = 0.9;
+uniform float wave_strength = 0.045;
 uniform float night = 0.0;
+uniform bool pond = false;
 varying vec3 world_pos;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vnoise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	VERTEX.y += sin(world_pos.x * 0.35 + TIME * 1.2) * wave_strength + cos(world_pos.z * 0.3 + TIME) * wave_strength;
+	if (!pond) {
+		VERTEX.y += sin(world_pos.x * 0.32 + TIME * 1.1) * wave_strength + cos(world_pos.z * 0.27 + TIME * 0.9) * wave_strength;
+	}
 }
+
 void fragment() {
-	float d = clamp(length(world_pos.xz) / 70.0, 0.0, 1.0);
-	vec3 col = mix(shallow.rgb, deep.rgb, d);
-	float ripple = sin(world_pos.x * 1.7 + TIME * 2.0) * sin(world_pos.z * 1.3 - TIME * 1.6);
-	col += vec3(smoothstep(0.85, 1.0, ripple)) * 0.25;
-	col = mix(col, col * vec3(0.25, 0.3, 0.55), night);
+	float r = length(world_pos.xz - center);
+	float d = pond ? clamp(1.0 - r / shore_radius, 0.0, 1.0) : clamp((r - shore_radius) / (deep_radius - shore_radius), 0.0, 1.0);
+	vec3 col = mix(shallow.rgb, deep.rgb, pond ? d * 0.6 : d);
+	float ripple = vnoise(world_pos.xz * 0.9 + vec2(TIME * 0.25, TIME * 0.18)) * vnoise(world_pos.xz * 1.7 - vec2(TIME * 0.2, 0.0));
+	col += vec3(smoothstep(0.42, 0.62, ripple)) * 0.12;
+	float edge = pond ? (shore_radius - r) : (r - shore_radius);
+	float foam_noise = vnoise(world_pos.xz * 2.2 + vec2(TIME * 0.6, 0.0));
+	float foam = (1.0 - smoothstep(0.0, foam_width + foam_noise * 0.5, edge)) * step(-0.4, edge);
+	foam *= 0.6 + 0.4 * sin(TIME * 1.6 + r * 2.0);
+	col = mix(col, foam_color.rgb, clamp(foam, 0.0, 1.0) * 0.85);
+	col = mix(col, col * vec3(0.22, 0.28, 0.5), night);
 	ALBEDO = col;
-	ROUGHNESS = 0.15;
-	SPECULAR = 0.6;
+	ROUGHNESS = 0.12;
+	SPECULAR = 0.55;
+	METALLIC = 0.0;
 }
 """
+
+
+static func _water_material(key: String) -> ShaderMaterial:
+	if _cache.has(key):
+		return _cache[key]
+	var shader := Shader.new()
+	shader.code = WATER_SHADER
 	var m := ShaderMaterial.new()
 	m.shader = shader
-	_cache["water"] = m
+	_cache[key] = m
+	return m
+
+
+static func water() -> ShaderMaterial:
+	return _water_material("water")
+
+
+static func pond_water() -> ShaderMaterial:
+	var created := not _cache.has("pond_water")
+	var m := _water_material("pond_water")
+	if created:
+		var c: Vector2 = Places.POIS["lago"]["pos"]
+		m.set_shader_parameter("pond", true)
+		m.set_shader_parameter("center", c)
+		m.set_shader_parameter("shore_radius", float(Places.POIS["lago"]["radius"]) + 0.4)
+		m.set_shader_parameter("foam_width", 0.35)
+		m.set_shader_parameter("shallow", Color(0.45, 0.78, 0.74))
+		m.set_shader_parameter("deep", Color(0.22, 0.50, 0.58))
 	return m
 
 

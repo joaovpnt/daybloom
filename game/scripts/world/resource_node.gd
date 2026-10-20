@@ -36,38 +36,30 @@ func refresh() -> void:
 	visible = is_available()
 
 
-func _build_visual(kind: String, item_id: String) -> Node3D:
-	var v := Node3D.new()
-	var c := ItemDB.color(item_id)
+static func model_for(kind: String, item_id: String) -> String:
 	match kind:
 		"flower":
-			MaterialLib.mesh(MaterialLib.cylinder(0.02, 0.02, 0.4, 5), MaterialLib.toon(Color(0.3, 0.6, 0.3)), Vector3(0, 0.2, 0), v)
-			for i in range(5):
-				var a := TAU * i / 5.0
-				MaterialLib.mesh(MaterialLib.sphere(0.08), MaterialLib.toon(c), Vector3(cos(a) * 0.09, 0.42, sin(a) * 0.09), v)
-			MaterialLib.mesh(MaterialLib.sphere(0.06), MaterialLib.toon(Color(1.0, 0.85, 0.3)), Vector3(0, 0.44, 0), v)
-			MaterialLib.mesh(MaterialLib.sphere(0.1, 0.05), MaterialLib.toon(Color(0.35, 0.65, 0.3)), Vector3(0.08, 0.12, 0), v)
+			return "environment/flower_%s" % item_id
 		"shell":
-			var s := MaterialLib.mesh(MaterialLib.sphere(0.16, 0.12), MaterialLib.toon(c, 0.4), Vector3(0, 0.05, 0), v)
-			s.scale = Vector3(1.0, 1.0, 0.8)
-			if item_id == "estrela_do_mar":
-				for i in range(5):
-					var arm := MaterialLib.mesh(MaterialLib.capsule(0.05, 0.3), MaterialLib.toon(c), Vector3(cos(TAU * i / 5.0) * 0.12, 0.04, sin(TAU * i / 5.0) * 0.12), v)
-					arm.rotation = Vector3(PI / 2.0, 0, -TAU * i / 5.0 + PI / 2.0)
+			return "props/item_starfish" if item_id == "estrela_do_mar" else "props/item_shell"
 		"branch":
-			var b := MaterialLib.mesh(MaterialLib.cylinder(0.04, 0.05, 0.7, 6), MaterialLib.toon(c), Vector3(0, 0.05, 0), v)
-			b.rotation = Vector3(PI / 2.0, 0.5, 0)
-			var b2 := MaterialLib.mesh(MaterialLib.cylinder(0.025, 0.03, 0.3, 5), MaterialLib.toon(c), Vector3(0.1, 0.07, 0.1), v)
-			b2.rotation = Vector3(PI / 2.0, -0.6, 0)
+			return "props/item_branch"
 		"fruit":
-			MaterialLib.mesh(MaterialLib.sphere(0.15), MaterialLib.toon(c), Vector3(0, 0.15, 0), v)
-			MaterialLib.mesh(MaterialLib.sphere(0.06, 0.03), MaterialLib.toon(Color(0.3, 0.6, 0.3)), Vector3(0.05, 0.3, 0), v)
+			return "props/item_%s" % item_id
 		"stone":
-			var st := MaterialLib.mesh(MaterialLib.sphere(0.17, 0.12), MaterialLib.toon(c, 0.5), Vector3(0, 0.05, 0), v)
-			st.scale = Vector3(1.2, 1.0, 0.9)
+			return "props/item_stone"
+	return "props/item_stone"
+
+
+func _build_visual(kind: String, item_id: String) -> Node3D:
+	var v := Node3D.new()
+	var model := ModelLib.instance(model_for(kind, item_id), false)
+	model.scale = Vector3.ONE * (1.25 if kind == "flower" else 1.6)
+	v.add_child(model)
 	# Brilho sutil para indicar que é coletável
-	var spark := MaterialLib.mesh(MaterialLib.sphere(0.035), MaterialLib.toon(Color(1, 1, 0.85), 0.2, 2.0), Vector3(0.12, 0.55, 0.05), v)
+	var spark := MaterialLib.mesh(MaterialLib.sphere(0.04), MaterialLib.toon(Color(1, 1, 0.85), 0.2, 2.0), Vector3(0.14, 0.62, 0.05), v)
 	spark.name = "Spark"
+	spark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return v
 
 
