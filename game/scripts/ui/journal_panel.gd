@@ -13,9 +13,6 @@ var detail_text: RichTextLabel
 
 func _ready() -> void:
 	theme = UiTheme.make()
-	set_anchors_preset(Control.PRESET_CENTER)
-	grow_horizontal = Control.GROW_DIRECTION_BOTH
-	grow_vertical = Control.GROW_DIRECTION_BOTH
 	custom_minimum_size = Vector2(900, 620)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
@@ -68,6 +65,7 @@ func _ready() -> void:
 func open() -> void:
 	refresh()
 	visible = true
+	UiTheme.place(self, Control.PRESET_CENTER)
 
 
 func close_panel() -> void:
@@ -124,7 +122,7 @@ func show_detail(npc_id: String) -> void:
 	var t := []
 	t.append("[b]%s[/b] — %s, %s" % [npc.display_name(), npc.def.species, npc.def.occupation])
 	t.append("[i]%s[/i]" % npc.def.personality_summary)
-	t.append("Humor: %s · Estado: %s" % [npc.mood, npc.state])
+	t.append("Humor: %s · Estado: %s" % [npc.mood, NpcState.STATE_LABELS.get(npc.state, npc.state)])
 	t.append("Com você: afinidade %.0f · confiança %.0f (%s)" % [float(rel["affinity"]), float(rel["trust"]), RelationshipSystem.label_for(float(rel["affinity"]))])
 	t.append("Objetivo: %s (%d%%)" % [npc.def.personal_goal, int(npc.goal_progress * 100.0)])
 	t.append("Necessidades: energia %d · social %d · diversão %d · conforto %d" % [int(npc.need("energia")), int(npc.need("social")), int(npc.need("diversao")), int(npc.need("conforto"))])

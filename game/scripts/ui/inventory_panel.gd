@@ -13,9 +13,6 @@ var gift_mode := false
 
 func _ready() -> void:
 	theme = UiTheme.make()
-	set_anchors_preset(Control.PRESET_CENTER)
-	grow_horizontal = Control.GROW_DIRECTION_BOTH
-	grow_vertical = Control.GROW_DIRECTION_BOTH
 	custom_minimum_size = Vector2(620, 0)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
@@ -41,6 +38,8 @@ func open(for_gift: bool = false) -> void:
 	title.text = "Escolha um presente" if for_gift else "Inventário"
 	refresh()
 	visible = true
+	await get_tree().process_frame
+	UiTheme.place(self, Control.PRESET_CENTER)
 
 
 func close_panel() -> void:

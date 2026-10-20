@@ -26,10 +26,6 @@ var last_source: String = ""
 func _ready() -> void:
 	theme = UiTheme.make()
 	rng.randomize()
-	set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	grow_horizontal = Control.GROW_DIRECTION_BOTH
-	grow_vertical = Control.GROW_DIRECTION_BEGIN
-	position.y = -24
 	custom_minimum_size = Vector2(860, 380)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
@@ -93,6 +89,7 @@ func open(p_npc_id: String) -> void:
 	_refresh_header()
 	_append_npc(greeting)
 	visible = true
+	UiTheme.place(self, Control.PRESET_CENTER_BOTTOM, 24)
 	input.editable = true
 	send_button.disabled = false
 	input.grab_focus()

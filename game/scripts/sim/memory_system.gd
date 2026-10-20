@@ -94,7 +94,7 @@ func retrieve(npc_id: String, context: Dictionary, limit: int = 5) -> Array:
 		var desc: String = str(mem["description"]).to_lower()
 		for kw in keywords:
 			if str(kw).length() >= 3 and desc.contains(str(kw).to_lower()):
-				score += 0.25
+				score += 0.45
 		scored.append([score, mem])
 	scored.sort_custom(func(a, b): return a[0] > b[0])
 	var out := []

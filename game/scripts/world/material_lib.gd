@@ -15,8 +15,8 @@ static func toon(color: Color, roughness: float = 0.9, emission: float = 0.0) ->
 	m.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
 	m.specular_mode = BaseMaterial3D.SPECULAR_TOON
 	m.rim_enabled = true
-	m.rim = 0.25
-	m.rim_tint = 0.6
+	m.rim = 0.12
+	m.rim_tint = 0.5
 	if emission > 0.0:
 		m.emission_enabled = true
 		m.emission = color

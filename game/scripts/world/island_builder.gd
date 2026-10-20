@@ -7,8 +7,8 @@ extends RefCounted
 const GRASS := Color(0.55, 0.8, 0.42)
 const GRASS_DARK := Color(0.42, 0.68, 0.35)
 const SAND := Color(0.97, 0.88, 0.66)
-const PATH := Color(0.86, 0.74, 0.55)
-const STONE := Color(0.88, 0.85, 0.8)
+const PATH := Color(0.8, 0.66, 0.47)
+const STONE := Color(0.8, 0.76, 0.7)
 const WOOD := Color(0.62, 0.43, 0.28)
 const WOOD_LIGHT := Color(0.8, 0.62, 0.42)
 
@@ -161,7 +161,7 @@ func _build_paths() -> void:
 
 func _build_plaza() -> void:
 	MaterialLib.mesh(MaterialLib.cylinder(7.2, 7.2, 0.06, 48), MaterialLib.toon(STONE), Vector3(0, 0.02, 0), decor_root)
-	MaterialLib.mesh(MaterialLib.cylinder(5.4, 5.4, 0.065, 48), MaterialLib.toon(Color(0.93, 0.89, 0.82)), Vector3(0, 0.022, 0), decor_root)
+	MaterialLib.mesh(MaterialLib.cylinder(5.4, 5.4, 0.065, 48), MaterialLib.toon(Color(0.86, 0.8, 0.72)), Vector3(0, 0.022, 0), decor_root)
 	# Fonte central
 	MaterialLib.mesh(MaterialLib.cylinder(1.7, 1.8, 0.6, 32), MaterialLib.toon(Color(0.8, 0.78, 0.75)), Vector3(0, 0.3, 0), decor_root)
 	var water := MaterialLib.mesh(MaterialLib.cylinder(1.5, 1.5, 0.05, 32), MaterialLib.water(), Vector3(0, 0.58, 0), decor_root)

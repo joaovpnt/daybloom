@@ -7,6 +7,7 @@ signal save_requested()
 signal quit_to_menu_requested()
 
 var status_label: Label
+var _panel: PanelContainer
 
 
 func _ready() -> void:
@@ -18,11 +19,9 @@ func _ready() -> void:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	panel.custom_minimum_size = Vector2(420, 0)
 	add_child(panel)
+	_panel = panel
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
 	panel.add_child(v)
@@ -44,3 +43,4 @@ func _ready() -> void:
 	v.add_child(status_label)
 	EventBus.save_status_changed.connect(func(s): status_label.text = s.get("message", ""))
 	visible = false
+	visibility_changed.connect(func(): if visible: UiTheme.place(_panel, Control.PRESET_CENTER))

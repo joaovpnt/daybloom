@@ -27,7 +27,7 @@ func load_save(slot_id: String) -> Dictionary:
 	if not parsed is Dictionary or not parsed.has("snapshot"):
 		return {"ok": false, "found": false, "error": "arquivo de save corrompido"}
 	var expected := str(parsed.get("checksum", ""))
-	if expected != JSON.stringify(parsed["snapshot"], "", true).sha256_text():
+	if expected != _checksum(parsed["snapshot"]):
 		return {"ok": false, "found": false, "error": "checksum do save não confere"}
 	return {"ok": true, "found": true, "snapshot": parsed["snapshot"], "revision": int(parsed["revision"]), "error": ""}
 
@@ -44,7 +44,7 @@ func write_save(slot_id: String, snapshot: Dictionary, expected_revision: int, o
 	var new_rev := current_rev + 1
 	var doc := {
 		"revision": new_rev,
-		"checksum": JSON.stringify(snapshot, "", true).sha256_text(),
+		"checksum": _checksum(snapshot),
 		"saved_at": Time.get_datetime_string_from_system(true),
 		"snapshot": snapshot,
 	}
@@ -58,6 +58,13 @@ func write_save(slot_id: String, snapshot: Dictionary, expected_revision: int, o
 	if err != OK:
 		return {"ok": false, "error": "falha ao finalizar gravação (%s)" % error_string(err), "conflict": false}
 	return {"ok": true, "revision": new_rev, "error": "", "conflict": false}
+
+
+## Checksum sobre a forma normalizada (JSON → objeto → JSON ordenado), para que
+## inteiros e reais sejam tratados da mesma forma na gravação e na leitura.
+static func _checksum(snapshot: Dictionary) -> String:
+	var normalized: Variant = JSON.parse_string(JSON.stringify(snapshot))
+	return JSON.stringify(normalized, "", true).sha256_text()
 
 
 func delete_save(slot_id: String) -> void:

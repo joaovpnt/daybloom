@@ -105,6 +105,16 @@ func load_for(owner_id: String, rels: Dictionary) -> void:
 			r[key] = saved[key]
 		r["affinity"] = clampf(float(r["affinity"]), -100.0, 100.0)
 		r["trust"] = clampf(float(r["trust"]), 0.0, 100.0)
-		r["interactions"] = int(r["interactions"])
-		r["history"] = (r["history"] as Array).duplicate(true)
+		for key in ["interactions", "gift_day", "gifts_today", "talk_day"]:
+			r[key] = int(r.get(key, 0))
+		r["conflict_open"] = bool(r.get("conflict_open", false))
+		r["conflict_since"] = float(r.get("conflict_since", 0.0))
+		if r["last_meeting"] is Dictionary:
+			r["last_meeting"] = {"day": int(r["last_meeting"]["day"]), "minute": float(r["last_meeting"]["minute"])}
+		var hist := []
+		for h in r["history"]:
+			var e: Dictionary = (h as Dictionary).duplicate()
+			e["day"] = int(e["day"])
+			hist.append(e)
+		r["history"] = hist
 		data[owner_id][str(other)] = r

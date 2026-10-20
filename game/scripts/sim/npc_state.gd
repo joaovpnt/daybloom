@@ -5,6 +5,7 @@ extends RefCounted
 
 const STATES := ["IDLE", "WALKING", "RESTING", "WORKING", "SOCIALIZING", "EXPLORING", "LEISURE"]
 const NEED_KEYS := ["energia", "social", "diversao", "conforto"]
+const STATE_LABELS := {"IDLE": "parado", "WALKING": "andando", "RESTING": "descansando", "WORKING": "trabalhando", "SOCIALIZING": "socializando", "EXPLORING": "explorando", "LEISURE": "lazer"}
 
 var def: NpcDefinition
 var id: String = ""

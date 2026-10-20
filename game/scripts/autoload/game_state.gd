@@ -5,7 +5,7 @@ extends Node
 const SCHEMA_VERSION := 1
 const GAME_VERSION := "0.1.0"
 const DEFAULT_SLOT := "slot1"
-const PLAYER_SPAWN := Vector3(2.0, 0.0, 20.5)
+const PLAYER_SPAWN := Vector3(2.0, 0.0, 15.5)
 
 var sim: Simulation = null
 var inventory := Inventory.new()

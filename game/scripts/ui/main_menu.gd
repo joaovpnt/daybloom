@@ -20,9 +20,6 @@ func _ready() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var center := VBoxContainer.new()
-	center.set_anchors_preset(Control.PRESET_CENTER)
-	center.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	center.grow_vertical = Control.GROW_DIRECTION_BOTH
 	center.add_theme_constant_override("separation", 14)
 	center.custom_minimum_size = Vector2(460, 0)
 	add_child(center)
@@ -65,14 +62,13 @@ func _ready() -> void:
 	version.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	version.position = Vector2(-130, -34)
 	add_child(version)
+	await get_tree().process_frame
+	UiTheme.place(center, Control.PRESET_CENTER)
 	refresh_status()
 
 
 func _build_new_panel() -> void:
 	new_panel = PanelContainer.new()
-	new_panel.set_anchors_preset(Control.PRESET_CENTER)
-	new_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	new_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	new_panel.custom_minimum_size = Vector2(520, 0)
 	new_panel.visible = false
 	add_child(new_panel)
@@ -135,6 +131,7 @@ func refresh_status() -> void:
 
 func _on_new_pressed() -> void:
 	new_panel.visible = true
+	UiTheme.place(new_panel, Control.PRESET_CENTER)
 	overwrite_label.text = "Atenção: começar uma nova partida substituirá a partida salva atual no primeiro salvamento." if _save_exists else ""
 	name_input.grab_focus()
 

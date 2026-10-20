@@ -75,7 +75,7 @@ func setup(p_npc: NpcState, p_sim: Simulation, p_director: Node) -> void:
 	emote_label.pixel_size = 0.005
 	emote_label.outline_size = 14
 	emote_label.outline_modulate = Color(1, 1, 1)
-	emote_label.position = Vector3(0.45, 2.0 * npc.def.height_scale + 0.2, 0)
+	emote_label.position = Vector3(0.0, 2.25 * npc.def.height_scale + 0.75, 0)
 	emote_label.visibility_range_end = 26.0
 	add_child(emote_label)
 	add_to_group("interactable")

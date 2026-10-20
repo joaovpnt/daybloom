@@ -129,3 +129,11 @@ static func item_icon(item_id: String, size: float = 44.0) -> Control:
 	icon.item_id = item_id
 	icon.custom_minimum_size = Vector2(size, size)
 	return icon
+
+
+## Ancora um controle levando em conta o tamanho mínimo (evita deslocamentos).
+static func place(c: Control, preset: int, margin: int = 0) -> void:
+	c.reset_size()
+	c.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, margin)
+	c.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	c.grow_vertical = Control.GROW_DIRECTION_BOTH if preset == Control.PRESET_CENTER else Control.GROW_DIRECTION_BEGIN

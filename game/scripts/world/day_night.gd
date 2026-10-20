@@ -12,15 +12,15 @@ var _last_update := -100.0
 
 # Paleta por hora: [hora, céu topo, horizonte, cor do sol, energia do sol, ambiente]
 const KEYS := [
-	[0.0, Color(0.05, 0.07, 0.2), Color(0.12, 0.15, 0.32), Color(0.5, 0.55, 0.9), 0.0, 0.35],
-	[5.0, Color(0.1, 0.12, 0.3), Color(0.35, 0.3, 0.45), Color(0.8, 0.6, 0.6), 0.1, 0.4],
-	[6.5, Color(0.45, 0.6, 0.85), Color(1.0, 0.72, 0.55), Color(1.0, 0.75, 0.55), 0.7, 0.6],
-	[9.0, Color(0.38, 0.65, 0.95), Color(0.75, 0.88, 0.98), Color(1.0, 0.96, 0.88), 1.15, 0.8],
-	[15.0, Color(0.36, 0.62, 0.95), Color(0.78, 0.88, 0.98), Color(1.0, 0.95, 0.85), 1.1, 0.8],
-	[18.0, Color(0.4, 0.45, 0.75), Color(1.0, 0.6, 0.45), Color(1.0, 0.62, 0.4), 0.7, 0.62],
-	[19.5, Color(0.15, 0.15, 0.38), Color(0.55, 0.35, 0.5), Color(0.9, 0.5, 0.45), 0.15, 0.45],
-	[21.0, Color(0.06, 0.08, 0.22), Color(0.14, 0.16, 0.34), Color(0.5, 0.55, 0.9), 0.0, 0.36],
-	[24.0, Color(0.05, 0.07, 0.2), Color(0.12, 0.15, 0.32), Color(0.5, 0.55, 0.9), 0.0, 0.35],
+	[0.0, Color(0.05, 0.07, 0.2), Color(0.12, 0.15, 0.32), Color(0.5, 0.55, 0.9), 0.0, 0.22],
+	[5.0, Color(0.1, 0.12, 0.3), Color(0.35, 0.3, 0.45), Color(0.8, 0.6, 0.6), 0.08, 0.25],
+	[6.5, Color(0.45, 0.6, 0.85), Color(1.0, 0.72, 0.55), Color(1.0, 0.75, 0.55), 0.55, 0.32],
+	[9.0, Color(0.32, 0.6, 0.92), Color(0.72, 0.86, 0.97), Color(1.0, 0.95, 0.86), 0.95, 0.4],
+	[15.0, Color(0.3, 0.58, 0.92), Color(0.75, 0.86, 0.97), Color(1.0, 0.94, 0.84), 0.9, 0.4],
+	[18.0, Color(0.4, 0.45, 0.75), Color(1.0, 0.6, 0.45), Color(1.0, 0.6, 0.38), 0.6, 0.33],
+	[19.5, Color(0.15, 0.15, 0.38), Color(0.55, 0.35, 0.5), Color(0.9, 0.5, 0.45), 0.12, 0.27],
+	[21.0, Color(0.06, 0.08, 0.22), Color(0.14, 0.16, 0.34), Color(0.5, 0.55, 0.9), 0.0, 0.22],
+	[24.0, Color(0.05, 0.07, 0.2), Color(0.12, 0.15, 0.32), Color(0.5, 0.55, 0.9), 0.0, 0.22],
 ]
 
 
@@ -49,11 +49,14 @@ func setup(p_lamps: Array, p_fire: Array) -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 0.85
+	env.tonemap_white = 1.4
 	env.glow_enabled = true
-	env.glow_intensity = 0.6
-	env.glow_bloom = 0.05
+	env.glow_intensity = 0.3
+	env.glow_bloom = 0.0
+	env.glow_hdr_threshold = 1.2
 	env.fog_enabled = true
-	env.fog_density = 0.004
+	env.fog_density = 0.0025
 	env.ssao_enabled = true
 	env.ssao_radius = 1.2
 	env.ssao_intensity = 1.2
@@ -102,7 +105,6 @@ func apply_time(minute: float) -> void:
 	var hour := minute / 60.0
 	var s := _sample(hour)
 	var day_t := clampf((hour - 5.5) / 14.5, 0.0, 1.0)
-	sun.rotation = Vector3(-lerpf(0.12, PI - 0.12, day_t) if hour > 5.0 and hour < 20.5 else -0.2, deg_to_rad(-35.0), 0)
 	sun.rotation.x = -sin(day_t * PI) * 1.1 - 0.12
 	sun.rotation.y = deg_to_rad(lerpf(-80.0, 80.0, day_t))
 	sun.light_color = s[2]
@@ -113,7 +115,7 @@ func apply_time(minute: float) -> void:
 	sky_mat.sky_horizon_color = s[1]
 	sky_mat.ground_horizon_color = s[1]
 	sky_mat.ground_bottom_color = (s[0] as Color).darkened(0.3)
-	env.ambient_light_color = (s[1] as Color).lerp(Color(1, 1, 1), 0.35)
+	env.ambient_light_color = (s[1] as Color).lerp(Color(1, 1, 1), 0.2)
 	env.ambient_light_energy = s[4]
 	env.fog_light_color = s[1]
 	for lamp in lamps:

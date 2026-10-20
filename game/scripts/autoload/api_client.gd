@@ -21,7 +21,7 @@ func _ready() -> void:
 func request_json(method: int, path: String, body: Variant = null, timeout_s: float = 8.0) -> Dictionary:
 	var http := HTTPRequest.new()
 	http.timeout = timeout_s
-	http.use_threads = true
+	http.use_threads = false
 	add_child(http)
 	var headers := PackedStringArray(["Content-Type: application/json", "Accept: application/json"])
 	var payload := "" if body == null else JSON.stringify(body)
