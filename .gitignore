@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+backend/.venv/
+.pytest_cache/
+*.egg-info/
+
+# Configuração local
+.env
+backend/.env
+
+# Godot
+game/.godot/
+game/export_presets.cfg
+*.translation
+game/tests/output/
+
+# Ferramentas baixadas localmente
+tools/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
