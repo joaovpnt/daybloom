@@ -39,11 +39,14 @@ func test_cena_principal_carrega() -> void:
 
 
 func test_movimentacao_e_colisao() -> void:
+	# A jogadora começa na porta de casa: anda para longe da porta (caminho livre).
 	var start := world.player.global_position
-	world.player.debug_input = Vector2(0, -1)
+	var away := Places.house_facing("casa_jogadora")
+	world.player.debug_input = away
 	await wait_frames(60)
 	world.player.debug_input = Vector2.ZERO
-	assert_gt(start.z - world.player.global_position.z, 2.5, "a jogadora andou para frente (W)")
+	var moved := Vector2(world.player.global_position.x - start.x, world.player.global_position.z - start.z)
+	assert_gt(moved.dot(away), 2.5, "a jogadora andou para frente")
 	# Empurra a jogadora contra a casa da Lila: ela não pode atravessar.
 	var house := Places.house_pos("casa_lila")
 	var door := Places.house_door("casa_lila")
