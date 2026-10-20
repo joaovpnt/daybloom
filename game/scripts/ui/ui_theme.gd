@@ -212,6 +212,8 @@ static func make() -> Theme:
 	t.set_color("font_hover_pressed_color", "CheckButton", INK)
 	t.set_color("font_focus_color", "CheckButton", INK)
 	t.set_stylebox("focus", "CheckButton", box(Color(0, 0, 0, 0), RADIUS_S, GREEN, 2, false, 4))
+	for s in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		t.set_stylebox(s, "CheckButton", box(Color(0, 0, 0, 0), RADIUS_S, Color(0, 0, 0, 0), 0, false, 4))
 	t.set_color("font_color", "OptionButton", INK)
 	t.set_color("font_hover_color", "OptionButton", INK)
 	t.set_color("font_pressed_color", "OptionButton", INK)

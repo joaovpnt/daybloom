@@ -36,6 +36,8 @@ func _ready() -> void:
 	day_night.setup(builder.lamps, builder.fire_lights)
 	day_night.set_process(false)
 	day_night.apply_time(16.6 * 60.0)
+	# Vista de longe: menos neblina para não desbotar a ilha.
+	day_night.env.fog_density = 0.0005
 	_spawn_villagers()
 	camera = Camera3D.new()
 	camera.fov = 42.0

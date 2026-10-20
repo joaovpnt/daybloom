@@ -15,10 +15,10 @@ var _panel: PanelContainer
 func _ready() -> void:
 	theme = UiTheme.make()
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var dim := ColorRect.new()
 	dim.color = Color(0.25, 0.18, 0.12, 0.42)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	_panel = PanelContainer.new()
 	_panel.custom_minimum_size = Vector2(440, 0)
@@ -61,6 +61,9 @@ func _on_visibility() -> void:
 	if visible:
 		_panel.visible = true
 		settings_panel.visible = false
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		UiTheme.place(_panel, Control.PRESET_CENTER)
+		await get_tree().process_frame
 		UiTheme.place(_panel, Control.PRESET_CENTER)
 		UiTheme.pop_in(_panel)
 

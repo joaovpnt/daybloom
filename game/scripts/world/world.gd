@@ -159,6 +159,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_on_escape()
 		get_viewport().set_input_as_handled()
 		return
+	if key == KEY_F3:
+		hud.toggle_diagnostics()
+		return
+	if key == KEY_F1:
+		hud.show_hints()
+		return
 	if not is_ready or get_tree().paused:
 		return
 	if _modal == "dialogue":
@@ -193,7 +199,8 @@ func _on_escape() -> void:
 			dialogue_panel.close_panel()
 		_:
 			if get_tree().paused:
-				_resume()
+				if not pause_menu.handle_escape():
+					_resume()
 			else:
 				_pause()
 

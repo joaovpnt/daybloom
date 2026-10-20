@@ -128,7 +128,6 @@ func refresh() -> void:
 			b.add_theme_stylebox_override("focus", UiTheme.box(Color(0, 0, 0, 0), 16, UiTheme.INK, 2, false, 4))
 			b.tooltip_text = ItemDB.display_name(item_id)
 			var icon := UiTheme.item_icon(item_id, 68)
-			icon.set_anchors_preset(Control.PRESET_CENTER)
 			icon.position = Vector2((SLOT - 68) / 2.0, (SLOT - 68) / 2.0 - 4)
 			b.add_child(icon)
 			var count := UiTheme.label("×%d" % int(items[i]["count"]), 13, UiTheme.INK, true)

@@ -11,7 +11,10 @@ var _timer := 0.0
 func _ready() -> void:
 	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.INK, 0.88), 16, UiTheme.INK, 0, true, 12))
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	position = Vector2(-420, 120)
+	grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	offset_left = -424
+	offset_right = -24
+	offset_top = 112
 	custom_minimum_size = Vector2(400, 0)
 	text = RichTextLabel.new()
 	text.bbcode_enabled = true

@@ -18,6 +18,9 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_settings()
 	apply()
+	get_tree().root.size_changed.connect(func():
+		if DisplayServer.get_name() != "headless":
+			apply_ui_scale())
 
 
 func load_settings() -> void:
@@ -65,5 +68,16 @@ func apply() -> void:
 			vp.msaa_3d = Viewport.MSAA_DISABLED
 	vp.scaling_3d_scale = render_scale
 	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if render_scale < 0.99 else Viewport.SCALING_3D_MODE_BILINEAR
-	get_tree().root.content_scale_factor = ui_scale
+	apply_ui_scale()
 	EventBus.settings_changed.emit()
+
+
+## Escala da interface: a preferência da jogadora multiplicada por um fator
+## automático acima de 1080p (em 1440p a interface cresce ~33%).
+func effective_ui_scale(window_height: float) -> float:
+	return ui_scale * maxf(1.0, window_height / 1080.0)
+
+
+func apply_ui_scale() -> void:
+	var root := get_tree().root
+	root.content_scale_factor = effective_ui_scale(float(root.size.y))

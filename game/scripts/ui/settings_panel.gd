@@ -91,6 +91,10 @@ func _toggle(text: String, prop: String) -> void:
 	var c := CheckButton.new()
 	c.name = prop
 	c.button_pressed = bool(Settings.get(prop))
+	var empty := StyleBoxEmpty.new()
+	for st in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		c.add_theme_stylebox_override(st, empty)
+	c.add_theme_stylebox_override("focus", UiTheme.box(Color(0, 0, 0, 0), 999, UiTheme.INK, 2, false, 0))
 	c.toggled.connect(func(on: bool):
 		Settings.set(prop, on)
 		Settings.apply())
