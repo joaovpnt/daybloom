@@ -24,3 +24,6 @@ tools/
 Thumbs.db
 desktop.ini
 *.log
+
+# Scripts temporários de desenvolvimento
+game/tests/_*

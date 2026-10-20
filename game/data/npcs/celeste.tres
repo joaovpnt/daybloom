@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "celeste"
+display_name = "Dona Celeste"
+species = "ovelha"
+body_shape = "ovelha"
+pronoun = "ela"
+occupation = "costureira"
+home_id = "casa_celeste"
+primary_color = Color(0.97, 0.95, 0.9, 1)
+secondary_color = Color(0.95, 0.8, 0.78, 1)
+accent_color = Color(0.78, 0.62, 0.88, 1)
+height_scale = 0.95
+sociabilidade = 0.6
+gentileza = 0.95
+curiosidade = 0.35
+coragem = 0.25
+energia = 0.25
+personality_summary = "maternal, paciente e muito gentil; adora conforto e histórias antigas"
+speech_style = "carinhosa e maternal, chama todo mundo de 'querida' ou 'querido'"
+catchphrase = "ai, que graça"
+likes = PackedStringArray("margarida", "flor_branca", "pessego")
+dislikes = PackedStringArray("galho", "pedra")
+hobbies = PackedStringArray("costura", "leitura", "jardinagem")
+favorite_place = "banco_praca"
+work_place = "home"
+work_activity = "costurando na varanda"
+personal_goal = "Costurar uma colcha com retalhos de todos os moradores"
+personal_goal_id = "colcha"
+wake_hour = 6.0
+sleep_hour = 20.5
+work_start_hour = 9.0
+work_end_hour = 12.0

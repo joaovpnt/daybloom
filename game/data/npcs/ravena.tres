@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "ravena"
+display_name = "Ravena"
+species = "raposa"
+body_shape = "raposa"
+pronoun = "ela"
+occupation = "pintora"
+home_id = "casa_ravena"
+primary_color = Color(0.93, 0.5, 0.2, 1)
+secondary_color = Color(0.98, 0.95, 0.9, 1)
+accent_color = Color(0.5, 0.25, 0.6, 1)
+height_scale = 1.0
+sociabilidade = 0.4
+gentileza = 0.3
+curiosidade = 0.75
+coragem = 0.85
+energia = 0.65
+personality_summary = "independente, perfeccionista e franca; difícil de agradar, mas leal"
+speech_style = "direta, irônica e sincera, sem rodeios"
+catchphrase = "hmpf, nada mal"
+likes = PackedStringArray("flor_vermelha", "raro", "concha")
+dislikes = PackedStringArray("flor_branca", "doce")
+hobbies = PackedStringArray("pintura", "passear", "observar_estrelas")
+favorite_place = "mirante"
+work_place = "mirante"
+work_activity = "pintando um quadro"
+personal_goal = "Pintar a paisagem perfeita da ilha"
+personal_goal_id = "paisagem_perfeita"
+wake_hour = 8.5
+sleep_hour = 0.5
+work_start_hour = 10.0
+work_end_hour = 14.5

@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "bento"
+display_name = "Bento"
+species = "sapo"
+body_shape = "sapo"
+pronoun = "ele"
+occupation = "músico"
+home_id = "casa_bento"
+primary_color = Color(0.45, 0.75, 0.4, 1)
+secondary_color = Color(0.96, 0.93, 0.66, 1)
+accent_color = Color(0.86, 0.25, 0.25, 1)
+height_scale = 0.9
+sociabilidade = 0.8
+gentileza = 0.7
+curiosidade = 0.45
+coragem = 0.5
+energia = 0.55
+personality_summary = "descontraído, sonhador e amigável; vive cantarolando"
+speech_style = "relaxada e musical, às vezes faz rimas"
+catchphrase = "que som bonito!"
+likes = PackedStringArray("flor_azul", "azedo", "pedra_lisa")
+dislikes = PackedStringArray("flor_vermelha", "madeira")
+hobbies = PackedStringArray("musica", "contemplar_lago", "conversar")
+favorite_place = "coreto"
+work_place = "coreto"
+work_activity = "ensaiando músicas"
+personal_goal = "Compor uma canção para cada morador da ilha"
+personal_goal_id = "cancoes"
+wake_hour = 8.0
+sleep_hour = 23.5
+work_start_hour = 15.0
+work_end_hour = 18.5

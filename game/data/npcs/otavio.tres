@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NpcDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_definition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "otavio"
+display_name = "Otávio"
+species = "coruja"
+body_shape = "coruja"
+pronoun = "ele"
+occupation = "astrônomo e guardião da estante"
+home_id = "casa_otavio"
+primary_color = Color(0.58, 0.5, 0.42, 1)
+secondary_color = Color(0.92, 0.86, 0.74, 1)
+accent_color = Color(0.22, 0.28, 0.5, 1)
+height_scale = 0.9
+sociabilidade = 0.25
+gentileza = 0.65
+curiosidade = 0.95
+coragem = 0.4
+energia = 0.4
+personality_summary = "introvertido, sábio e muito curioso; noturno e observador"
+speech_style = "formal, pausada, cheia de curiosidades científicas"
+catchphrase = "fascinante..."
+likes = PackedStringArray("pedra", "flor_azul", "raro")
+dislikes = PackedStringArray("flor_amarela", "azedo")
+hobbies = PackedStringArray("observar_estrelas", "leitura", "passear")
+favorite_place = "mirante"
+work_place = "estante"
+work_activity = "organizando livros"
+personal_goal = "Mapear todas as constelações do céu da ilha"
+personal_goal_id = "mapa_estelar"
+wake_hour = 12.0
+sleep_hour = 3.5
+work_start_hour = 14.0
+work_end_hour = 18.0
