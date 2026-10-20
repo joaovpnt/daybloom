@@ -154,10 +154,11 @@ class ServiceTests(unittest.TestCase):
 
     def test_fallback_sem_ollama(self):
         port = _free_port()  # ninguém escutando nesta porta
-        service = DialogueService(OllamaClient(f"http://127.0.0.1:{port}", "qwen3:4b", 2.0), None)
+        service = DialogueService(OllamaClient(f"http://127.0.0.1:{port}", "qwen3:4b", 5.0), None)
         response = run(service.respond(make_request()))
         self.assertEqual(response.source, "fallback")
-        self.assertEqual(response.reason, "indisponivel")
+        # No Windows, uma porta fechada pode demorar a recusar a conexão.
+        self.assertIn(response.reason, ("indisponivel", "timeout"))
         self.assertIsNone(response.reply)
 
     def test_timeout_do_modelo(self):
