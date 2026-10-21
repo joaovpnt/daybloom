@@ -129,7 +129,7 @@ class DialogueService:
             log.info("fallback de diálogo (%s)", result.reason)
             return DialogueResponse(source="fallback", reason=result.reason, **base)
         try:
-            valid = contracts.validar_resposta(result.content, perm)
+            valid = contracts.validar_resposta(result.content, perm, request.message)
         except contracts.RespostaInvalida as exc:
             log.info("resposta do modelo rejeitada (%s): %s", exc.reason, exc)
             self.orchestrator.recent_errors.append({"tipo": "dialogo_jogadora", "motivo": exc.reason, "quando": ""})

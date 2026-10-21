@@ -405,3 +405,68 @@ class ReparoEConsistenciaTests(unittest.TestCase):
         raw = json.dumps({"fala_de_pipa": "Pipa, olha essa concha!", "fala_de_marina": "Marina, que demais!"})
         a, b = c.validar_falas_entre_moradores(raw, "pipa", "marina", "Pipa", "Marina")
         self.assertEqual((a, b), ("Marina, que demais!", "Pipa, olha essa concha!"))
+
+
+class EspeculacaoENomesTests(unittest.TestCase):
+    def _perm(self):
+        return c.Permissoes.from_context(contexto(known_events=[], related_npcs=[
+            {"id": "pipa", "name": "Pipa", "known_facts": []},
+            {"id": "tobias", "name": "Tobias", "known_facts": ["Viu Tobias e Ravena discutindo."], "witnessed": True},
+        ]))
+
+    def test_especulacao_removida_de_quem_nao_sabe(self):
+        r = c.validar_resposta(resposta(fala="Não sei, mas acho que elas resolveram tudo com um bolo.", intencao="nao_sei"), self._perm())
+        self.assertEqual(r.fala, "Não sei.")
+
+    def test_nome_inventado_recusado(self):
+        with self.assertRaises(c.RespostaInvalida) as e:
+            c.validar_resposta(resposta(fala="Não sei quem ganhou. O último barco que vi foi o de Júlia.", intencao="nao_sei"),
+                               self._perm(), "Quem ganhou a corrida de barcos?")
+        self.assertEqual(e.exception.reason, "nome_inventado")
+
+    def test_negar_o_que_viu_sem_citar_nome(self):
+        with self.assertRaises(c.RespostaInvalida) as e:
+            c.validar_resposta(resposta(fala="Hum, não vi nada hoje. Estava dormindo.", intencao="nao_sei"),
+                               self._perm(), "Você viu a briga do Tobias com a Ravena?")
+        self.assertEqual(e.exception.reason, "contradiz_memoria")
+
+    def test_ouvi_moradores_falar_e_boato(self):
+        with self.assertRaises(c.RespostaInvalida):
+            c.validar_resposta(resposta(fala="Eu só ouvi os moradores falar disso."), self._perm())
+
+    def test_resposta_normal_nao_e_afetada(self):
+        r = c.validar_resposta(resposta(fala="Hoje à noite a Vega brilha bonito no céu, fascinante.", intencao="responder_pergunta"),
+                               self._perm(), "Qual estrela aparece hoje?")
+        self.assertIn("Vega", r.fala)
+
+
+class PontuacaoTests(unittest.TestCase):
+    def test_sobras_de_pontuacao(self):
+        self.assertEqual(c.arrumar_pontuacao("Não sei de nada sobre eles. ."), "Não sei de nada sobre eles.")
+        self.assertEqual(c.arrumar_pontuacao("Não ouvi nada sobre isso. ?"), "Não ouvi nada sobre isso.")
+        self.assertEqual(c.arrumar_pontuacao("Não sei, não vi nada. !"), "Não sei, não vi nada.")
+        self.assertEqual(c.arrumar_pontuacao("Que dia lindo! Vamos regar?"), "Que dia lindo! Vamos regar?")
+        self.assertEqual(c.arrumar_pontuacao("Hum-hum, não sei. não tenho moedas."), "Hum-hum, não sei. Não tenho moedas.")
+
+
+class VocabularioTests(unittest.TestCase):
+    def test_item_do_contexto_nao_e_nome_inventado(self):
+        perm = c.Permissoes.from_context(contexto())
+        r = c.validar_resposta(resposta(fala="Lembro, sim! A Tulipa coral que você me deu está linda.", intencao="nao_sei"),
+                               perm, "Lembra do presente?")
+        self.assertIn("Tulipa", r.fala)
+
+
+class RotulosTests(unittest.TestCase):
+    def test_id_interno_vira_nome(self):
+        ctx = contexto()
+        ctx["allowed"]["place_labels"] = {"praia_sul": "praia do sul"}
+        r = c.validar_resposta(resposta(fala="Bora procurar conchas na praia_sul?"), c.Permissoes.from_context(ctx))
+        self.assertEqual(r.fala, "Bora procurar conchas na praia do sul?")
+
+
+class MetaTests(unittest.TestCase):
+    def test_campos_do_contrato_nao_vazam_na_fala(self):
+        r = c.validar_resposta(resposta(fala='Não sei o que ele pode ter dito. (intencao "nao_sei")', intencao="nao_sei"),
+                               c.Permissoes.from_context(contexto()))
+        self.assertEqual(r.fala, "Não sei o que ele pode ter dito.")

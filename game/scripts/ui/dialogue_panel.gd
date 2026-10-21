@@ -151,6 +151,8 @@ func open(p_npc_id: String, initiative: Dictionary = {}) -> void:
 	cancel_button.visible = false
 	log_text.text = ""
 	last_emotion = ""
+	for c in emotion_chip_holder.get_children():
+		c.queue_free()
 	current_initiative = initiative
 	var sim := GameState.sim
 	var npc: NpcState = sim.npcs[npc_id]
@@ -178,7 +180,14 @@ func _refresh_header() -> void:
 	subheader.text = "%s · %s" % [npc.def.species.capitalize(), npc.def.occupation]
 	for c in mood_holder.get_children():
 		c.queue_free()
-	mood_holder.add_child(UiTheme.chip(npc.mood.capitalize(), UiTheme.mood_color(npc.mood)))
+	# A reação do momento (validada) substitui o humor geral no chip, para não
+	# mostrar estados contraditórios ("radiante" e "triste" ao mesmo tempo).
+	var base: String = EMOTION_LABELS.get(last_emotion, "")
+	if base != "":
+		var lbl := base if base.ends_with("e") else base + npc.def.article()
+		mood_holder.add_child(UiTheme.chip(lbl.capitalize(), EMOTION_COLORS.get(last_emotion, UiTheme.SKY)))
+	else:
+		mood_holder.add_child(UiTheme.chip(npc.mood.capitalize(), UiTheme.mood_color(npc.mood)))
 	mood_holder.add_child(UiTheme.chip(RelationshipSystem.label_for(float(rel["affinity"])).capitalize(), UiTheme.CORAL))
 	hearts.text = UiTheme.hearts_text(float(rel["affinity"]))
 	hearts.tooltip_text = "Afinidade %.0f · Confiança %.0f" % [float(rel["affinity"]), float(rel["trust"])]
@@ -369,7 +378,7 @@ func _friendly_reason(reason: String) -> String:
 			return "IA local indisponível; usando diálogos clássicos."
 		"":
 			return "Backend indisponível; usando diálogos clássicos."
-	return "A resposta da IA não passou na verificação; usei um diálogo clássico."
+	return "Para não inventar nada, usei um diálogo clássico."
 
 
 func _set_mode(llm: bool) -> void:
@@ -386,12 +395,12 @@ func _show_emotion(emotion: String) -> void:
 	last_emotion = emotion
 	for c in emotion_chip_holder.get_children():
 		c.queue_free()
-	var base: String = EMOTION_LABELS.get(emotion, "")
-	if base == "":
+	if EMOTION_LABELS.get(emotion, "") == "":
 		return
-	var npc: NpcState = GameState.sim.npcs[npc_id]
-	var label := base if base.ends_with("e") else base + npc.def.article()
-	emotion_chip_holder.add_child(UiTheme.chip("parece " + label, EMOTION_COLORS.get(emotion, UiTheme.SKY)))
+	var hint := UiTheme.label("reação do momento", 12, UiTheme.INK_FAINT, true)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	emotion_chip_holder.add_child(hint)
+	_refresh_header()
 
 
 func give_item(item_id: String) -> Dictionary:

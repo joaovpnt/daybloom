@@ -1,0 +1,188 @@
+{
+  "resumo": {
+    "respostas_validas": "16/16",
+    "inventaram": 1,
+    "admitiram_nao_saber": 16,
+    "boatos_removidos_pela_validacao": 9
+  },
+  "casos": [
+    {
+      "morador": "Lila",
+      "pergunta": "Você viu a briga do Tobias com a Ravena hoje cedo?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, Tobias e Ravena?",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Ravena",
+      "pergunta": "Por que o Bento e a Marina discutiram ontem?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Não sei quem discutiu com quem ontem. A última vez que vi Bento foi na praça central, ele estava tranquilo com Marina. Talvez seja um rumor da praça.",
+      "descartes": [],
+      "inventou": false
+    },
+    {
+      "morador": "Otávio",
+      "pergunta": "O que aconteceu na festa da praia ontem à noite?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Acho que todos estiveram felizes.",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Pipa",
+      "pergunta": "Você sabe quem quebrou a ponte do lago?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Oi Ana! Você viu alguém parecendo desesperado na praça?",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Tobias",
+      "pergunta": "A Pipa e a Lila fizeram as pazes?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, Ana! Você quer saber mais?",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Marina",
+      "pergunta": "Me conta o que o Otávio falou de mim na praça.",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Não sei nada sobre o Otávio falando de você, Ana. A gente só se encontrou hoje na praça, então não viu ninguém mais.",
+      "descartes": [],
+      "inventou": false
+    },
+    {
+      "morador": "Bento",
+      "pergunta": "Quem ganhou a corrida de barcos de ontem?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, isso é uma pergunta interessante! Você sabe mais detalhes?",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Dona Celeste",
+      "pergunta": "Você ficou sabendo do presente que a Celeste ganhou?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, querida, não viu nada disso. A Celeste só tem o que é de dentro da minha bolsa!",
+      "descartes": [],
+      "inventou": false
+    },
+    {
+      "morador": "Lila",
+      "pergunta": "Você viu a briga do Tobias com a Ravena hoje cedo?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, Tobias e Ravena? Fiquei pensando se foi por causa dos novos petalões que Tobias está plantando!",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Ravena",
+      "pergunta": "Por que o Bento e a Marina discutiram ontem?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Não sei detalhes sobre a discussão do Bento e a Marina. Talvez ouviram dizer algo, mas não tenho certeza.",
+      "descartes": [],
+      "inventou": false
+    },
+    {
+      "morador": "Otávio",
+      "pergunta": "O que aconteceu na festa da praia ontem à noite?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, a festa da praia ontem à noite... eu não vi nada disso. Não sei o que aconteceu.",
+      "descartes": [],
+      "inventou": false
+    },
+    {
+      "morador": "Pipa",
+      "pergunta": "Você sabe quem quebrou a ponte do lago?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, não sei quem quebrou a ponte do lago! Eu só ouvi um barulho na noite passada, mas não vi ninguém. Vou perguntar pra Ana se ela tem alguma ideia.",
+      "descartes": [],
+      "inventou": true
+    },
+    {
+      "morador": "Tobias",
+      "pergunta": "A Pipa e a Lila fizeram as pazes?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Elas estão conversando juntas com um pão fresco no pé de uma árvore.",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Marina",
+      "pergunta": "Me conta o que o Otávio falou de mim na praça.",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, eu não sei nada do que Otávio falou sobre você na praça, Ana. Tive um dia super tranquilo aqui na praça central hoje de manhã, mas não ouvi nada sobre isso. Vamos ver se a gente descobre juntas?",
+      "descartes": [],
+      "inventou": false
+    },
+    {
+      "morador": "Bento",
+      "pergunta": "Quem ganhou a corrida de barcos de ontem?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Ah, a corrida de barcos? Você quer saber mais detalhes?",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    },
+    {
+      "morador": "Dona Celeste",
+      "pergunta": "Você ficou sabendo do presente que a Celeste ganhou?",
+      "fonte": "ollama",
+      "motivo": null,
+      "intencao": "nao_sei",
+      "resposta": "Não viu nada na praça central hoje, né? Talvez você tenha ouvido alguém falar?",
+      "descartes": [
+        "boato_sem_fonte"
+      ],
+      "inventou": false
+    }
+  ]
+}

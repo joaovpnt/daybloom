@@ -201,6 +201,7 @@ func _physics_process(delta: float) -> void:
 		_speech_timer -= delta
 		if _speech_timer <= 0.0:
 			speech.visible = false
+			emote.visible = true
 	_animate(delta)
 	npc.position = global_position
 	npc.rotation_y = rotation.y
@@ -427,6 +428,7 @@ func say(text: String, seconds: float = 4.5) -> void:
 		return
 	speech.text = text
 	speech.visible = true
+	emote.visible = false  # o balão de emoção não cobre a fala
 	_speech_timer = seconds
 	visual.talking = true
 

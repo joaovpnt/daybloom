@@ -1,6 +1,6 @@
 {
   "game_version": "0.3.0",
-  "island_id": "ilha_b211608737",
+  "island_id": "ilha_b271a0f2a9",
   "journal": [
     {
       "day": 1,
@@ -16,7 +16,7 @@
       "kind": "gift_received",
       "minute": 615.0,
       "participants": [
-        "jogadora_a479732227",
+        "jogadora_eb10adebc6",
         "lila"
       ],
       "text": "Ana deu uma Margarida para Lila, que adorou do presente."
@@ -50,7 +50,7 @@
       "minute": 760.0,
       "participants": [
         "bento",
-        "jogadora_a479732227"
+        "jogadora_eb10adebc6"
       ],
       "text": "Ana conversou com Bento pela primeira vez."
     }
@@ -89,7 +89,7 @@
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "lila"
           ],
           "relevance": 0.7,
@@ -108,12 +108,12 @@
           "id": "mem_lila_2_9",
           "importance": 0.8,
           "interpretation": "Foi um presente muito especial.",
-          "key": "gift|jogadora_a479732227|margarida|2",
+          "key": "gift|jogadora_eb10adebc6|margarida|2",
           "minute": 615.0,
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "lila"
           ],
           "public_fact": "Ana deu uma Margarida para Lila, que adorou do presente.",
@@ -214,7 +214,7 @@
           "talk_day": 0,
           "trust": 38.6
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 8.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -337,7 +337,7 @@
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "tobias"
           ],
           "relevance": 0.7,
@@ -425,7 +425,7 @@
           "talk_day": 0,
           "trust": 37.0
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -545,7 +545,7 @@
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "marina"
           ],
           "relevance": 0.7,
@@ -607,7 +607,7 @@
           "talk_day": 0,
           "trust": 28.2
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -715,7 +715,7 @@
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "otavio"
           ],
           "relevance": 0.7,
@@ -777,7 +777,7 @@
           "talk_day": 0,
           "trust": 34.6
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -885,7 +885,7 @@
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "pipa"
           ],
           "relevance": 0.7,
@@ -969,7 +969,7 @@
           "talk_day": 0,
           "trust": 25.4
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1080,7 +1080,7 @@
           "origin": "participacao",
           "participants": [
             "bento",
-            "jogadora_a479732227"
+            "jogadora_eb10adebc6"
           ],
           "relevance": 0.7,
           "type": "community_event",
@@ -1126,7 +1126,7 @@
           "occurrences": 1,
           "origin": "comunicacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "lila"
           ],
           "public_fact": "Ana deu uma Margarida para Lila, que adorou do presente.",
@@ -1146,13 +1146,13 @@
           "fact": "Conheceu Ana e conversaram pela primeira vez.",
           "id": "mem_bento_2_16",
           "importance": 0.75,
-          "key": "first_talk|jogadora_a479732227",
+          "key": "first_talk|jogadora_eb10adebc6",
           "minute": 760.0,
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
             "bento",
-            "jogadora_a479732227"
+            "jogadora_eb10adebc6"
           ],
           "relevance": 0.75,
           "type": "important_conversation",
@@ -1201,7 +1201,7 @@
           "talk_day": 0,
           "trust": 29.8
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 3.6,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1348,7 +1348,7 @@
           "occurrences": 1,
           "origin": "participacao",
           "participants": [
-            "jogadora_a479732227",
+            "jogadora_eb10adebc6",
             "ravena"
           ],
           "relevance": 0.7,
@@ -1436,7 +1436,7 @@
           "talk_day": 0,
           "trust": 26.2
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1557,7 +1557,7 @@
           "origin": "participacao",
           "participants": [
             "celeste",
-            "jogadora_a479732227"
+            "jogadora_eb10adebc6"
           ],
           "relevance": 0.7,
           "type": "community_event",
@@ -1606,7 +1606,7 @@
           "talk_day": 0,
           "trust": 25.0
         },
-        "jogadora_a479732227": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1699,7 +1699,7 @@
     }
   ],
   "player": {
-    "id": "jogadora_a479732227",
+    "id": "jogadora_eb10adebc6",
     "inventory": [
       {
         "count": 2,
@@ -1722,9 +1722,9 @@
     },
     "rotation_y": 3.142
   },
-  "player_id": "jogadora_a479732227",
+  "player_id": "jogadora_eb10adebc6",
   "save_slot_id": "slot1",
-  "saved_at": "2026-10-21T15:03:19Z",
+  "saved_at": "2026-10-21T15:20:32Z",
   "schema_version": 1,
   "world": {
     "day": 2,

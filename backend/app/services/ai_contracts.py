@@ -64,7 +64,7 @@ _ASTERISCOS_RE = re.compile(r"\*[^*]{1,80}\*")
 _REFS_RE = re.compile(r"\s*[\(\[]\s*m\d{1,2}\s*[\)\]]", re.IGNORECASE)
 _FALA_TRUNCADA_RE = re.compile(r'"fala"\s*:\s*"((?:[^"\\]|\\.)*)', re.DOTALL)
 _META_PAREN_RE = re.compile(
-    r"\((?:[^()]*\b(?:pontua|confian|sussurr|risos?|sorri|pensando|nota|obs|n[aã]o sei o que)[^()]*)\)",
+    r"\((?:[^()]*\b(?:pontua|confian|sussurr|risos?|sorri|pensando|nota|obs|n[aã]o sei o que|intencao|inten[cç][aã]o|emocao|emo[cç][aã]o|acao_|memoria_|nao_sei)[^()]*)\)",
     re.IGNORECASE,
 )
 # Marcas de "ouvi dizer": só valem se o morador conhecer algum rumor.
@@ -75,7 +75,8 @@ _NAO_SEI_RE = re.compile(
     re.IGNORECASE,
 )
 _BOATO_RE = re.compile(
-    r"\b(ouvi dizer|ouvi falar|me contaram|me disseram|disseram que|dizem que|fiquei sabendo|andam dizendo|soube que)\b",
+    r"\b(ouvi dizer|ouvi falar|ouvi (?:os|as|uns|umas|algu[eé]m|gente|moradores|eles|elas)(?: \w+)? (?:falar|comentar|dizer)|"
+    r"ouvi (?:um |uns )?boatos?|me contaram|me disseram|disseram que|dizem que|fiquei sabendo|andam dizendo|soube que)\b",
     re.IGNORECASE,
 )
 
@@ -170,6 +171,10 @@ class Permissoes:
     desconhecidos: list[str] = field(default_factory=list)
     # Moradores citados que este morador viu ou com quem esteve há pouco.
     testemunhados: list[str] = field(default_factory=list)
+    # Palavras presentes no contexto (nomes, itens, lugares): citá-las não é invenção.
+    vocabulario: set = field(default_factory=set)
+    # IDs internos (praia_sul, tulipa_coral) -> nomes para exibir na fala.
+    rotulos: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_context(cls, ctx: dict[str, Any]) -> "Permissoes":
@@ -192,7 +197,15 @@ class Permissoes:
             for r in (ctx.get("related_npcs") or [])
             if isinstance(r, dict) and r.get("name") and r.get("witnessed")
         ]
+        vocab = set(re.findall(r"[a-z0-9]{3,}", _norm(json.dumps(ctx, ensure_ascii=False))))
+        rotulos: dict[str, str] = {}
+        for chave in ("place_labels", "item_labels"):
+            for k, v in (allowed.get(chave) or {}).items():
+                if isinstance(k, str) and isinstance(v, str) and "_" in k:
+                    rotulos[k] = v
         return cls(
+            rotulos=rotulos,
+            vocabulario=vocab,
             testemunhados=[t for t in testemunhados if len(t) >= 3],
             desconhecidos=[d for d in desconhecidos if len(d) >= 3],
             conhece_rumores=rumores,
@@ -269,7 +282,14 @@ def reparar_truncado(raw: str) -> Optional[dict[str, Any]]:
     return {"fala": fala[: fim + 1], "emocao": "neutra", "intencao": "conversar", "memoria_referenciada_ids": []}
 
 
-def validar_resposta(raw: str, perm: Permissoes) -> RespostaValidada:
+_ESPECULACAO_RE = re.compile(r",?\s*(?:mas\s+)?(?:eu\s+)?(?:acho que|talvez|provavelmente|deve ter|aposto que|imagino que)\b[^.!?…]*", re.IGNORECASE)
+_NOMES_COMUNS = {
+    "ana", "daybloom", "ilha", "lila", "tobias", "marina", "otavio", "pipa", "bento", "ravena", "celeste", "dona",
+    "praca", "jardim", "lago", "mirante", "pomar", "bosque", "praia", "coreto", "quiosque", "parque", "eu", "voce",
+}
+
+
+def validar_resposta(raw: str, perm: Permissoes, pergunta: str = "") -> RespostaValidada:
     """Valida a saída do modelo. Levanta ``RespostaInvalida`` se a fala for inutilizável."""
     descartes: list[str] = []
     try:
@@ -286,7 +306,9 @@ def validar_resposta(raw: str, perm: Permissoes) -> RespostaValidada:
     except ValidationError as exc:
         raise RespostaInvalida("json_fora_do_contrato", str(exc.errors()[:2])) from exc
     fala = limpar_fala(resp.fala)
-    fala = _checar_conhecimento(fala, perm, descartes)
+    for interno, nome in perm.rotulos.items():
+        fala = re.sub(r"\b" + re.escape(interno) + r"\b", nome, fala)
+    fala = _checar_conhecimento(fala, perm, descartes, pergunta, resp.intencao)
     if len(fala) < MIN_FALA:
         raise RespostaInvalida("fala_vazia", "fala vazia")
     if quebra_personagem(fala):
@@ -374,7 +396,7 @@ def validar_plano(raw: str, opcoes: list[str]) -> tuple[str, str]:
     return opcao, motivo
 
 
-def _checar_conhecimento(fala: str, perm: Permissoes, descartes: list[str]) -> str:
+def _checar_conhecimento(fala: str, perm: Permissoes, descartes: list[str], pergunta: str = "", intencao: str = "") -> str:
     """Barreira contra invenções sobre o mundo.
 
     - "Ouvi dizer..." sem nenhum rumor conhecido: a frase sai; se o que sobrar não
@@ -383,6 +405,28 @@ def _checar_conhecimento(fala: str, perm: Permissoes, descartes: list[str]) -> s
       (sem marcas de "não sei"): resposta recusada (fallback).
     """
     frases = [f for f in re.split(r"(?<=[.!?…])\s+", fala) if f.strip()]
+    np = _norm(pergunta)
+    perguntou_testemunhado = any(re.search(r"\b" + re.escape(n) + r"\b", np) for n in perm.testemunhados)
+    perguntou_desconhecido = any(re.search(r"\b" + re.escape(n) + r"\b", np) for n in perm.desconhecidos)
+    if perguntou_testemunhado and any(re.search(r"\bn[aã]o (vi|estava l[aá]|sei de nada)\b", _norm(f)) for f in frases):
+        raise RespostaInvalida("contradiz_memoria", "negou ter visto o que lembra")
+    if intencao == "nao_sei" or perguntou_desconhecido:
+        # Quem não sabe não especula ("acho que...", "talvez...") nem cita gente nova.
+        novas = []
+        for f in frases:
+            g = _ESPECULACAO_RE.sub("", f).strip()
+            if g != f.strip():
+                descartes.append("especulacao_removida")
+                g = g.rstrip(",;: ") + ("" if g[-1:] in ".!?…" else ".") if g else ""
+            if g:
+                novas.append(g)
+        frases = novas
+        for f in frases:
+            palavras = re.findall(r"(?<![.!?…]\s)(?<!^)\b([A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]{2,})\b", f)
+            for w in palavras:
+                nw = _norm(w)
+                if nw not in _NOMES_COMUNS and nw not in perm.vocabulario and not re.search(r"\b" + re.escape(nw) + r"\b", np):
+                    raise RespostaInvalida("nome_inventado", f"citou {w} sem base")
     if not perm.conhece_rumores and any(_BOATO_RE.search(f) for f in frases):
         frases = [f for f in frases if not _BOATO_RE.search(f)]
         descartes.append("boato_sem_fonte")
@@ -399,4 +443,14 @@ def _checar_conhecimento(fala: str, perm: Permissoes, descartes: list[str]) -> s
         for nome in perm.desconhecidos:
             if re.search(r"\b" + re.escape(nome) + r"\b", nf):
                 raise RespostaInvalida("afirmacao_sem_base", f"afirmou algo sobre {nome} sem saber")
-    return " ".join(frases).strip()
+    return arrumar_pontuacao(" ".join(frases))
+
+
+def arrumar_pontuacao(text: str) -> str:
+    """Limpa sobras de pontuação deixadas pelos filtros (". !", ". .", " ?")."""
+    t = re.sub(r"\s+([,.!?…])", r"\1", text)
+    t = re.sub(r"([.!?…])(?:\s*[.!?])+", r"\1", t)
+    t = re.sub(r"^[\s,.;:!?]+", "", t)
+    t = re.sub(r"([.!?…]\s+)([a-záéíóúâêôãõç])", lambda m: m.group(1) + m.group(2).upper(), t)
+    t = re.sub(r"\s{2,}", " ", t).strip()
+    return t[:1].upper() + t[1:] if t else t

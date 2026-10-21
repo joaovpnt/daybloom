@@ -1,0 +1,150 @@
+{
+  "modelo": "qwen3:4b",
+  "instalado": true,
+  "vram_antes_mb": 2560,
+  "chamadas": [
+    {
+      "morador": "Lila",
+      "pergunta": "Oi Lila! Como está o jardim hoje?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Oi Ana! Estou super animada com o jardim hoje, as flores estão lindas! 😊",
+      "emocao": "alegre",
+      "ms": 42017,
+      "tokens_entrada": 669,
+      "tokens_saida": 77
+    },
+    {
+      "morador": "Ravena",
+      "pergunta": "O que você está pintando agora?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, a pintura que estou fazendo é um cão com um chapéu de sol, mas é um cão que não tem chapéu, tipo... um desafio para a mente. Você acha que ele vai se encher de sol ou não? 😄",
+      "emocao": "alegre",
+      "ms": 3903,
+      "tokens_entrada": 662,
+      "tokens_saida": 113
+    },
+    {
+      "morador": "Otávio",
+      "pergunta": "Qual estrela aparece primeiro à noite?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana... é uma pergunta interessante. Na ilha Daybloom, a estrela que geralmente aparece primeiro à noite é a Vega. Foi o que ouvi dizer na praça ao entardecer, naquele dia que conversamos.",
+      "emocao": "alegre",
+      "ms": 4003,
+      "tokens_entrada": 667,
+      "tokens_saida": 116
+    },
+    {
+      "morador": "Pipa",
+      "pergunta": "Tem alguma novidade na ilha?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Hoje de manhã fui na praça e vi um galo com uma coruja brincando. O que você acha? (sussurro) Foi o único evento do dia 3 que me chamou atenção!",
+      "emocao": "alegre",
+      "ms": 3841,
+      "tokens_entrada": 664,
+      "tokens_saida": 109
+    },
+    {
+      "morador": "Tobias",
+      "pergunta": "Que pão você fez hoje?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Hoje fiz pão com castanha fresca, o sabor é delicioso. Você quer provar um pedaço?",
+      "emocao": "alegre",
+      "ms": 3181,
+      "tokens_entrada": 657,
+      "tokens_saida": 83
+    },
+    {
+      "morador": "Marina",
+      "pergunta": "Bora correr na praia?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ahh, já tô pronta! Vamos queimar um pouco de sol antes do almoço, Ana! 🌊",
+      "emocao": "alegre",
+      "ms": 3081,
+      "tokens_entrada": 661,
+      "tokens_saida": 77
+    },
+    {
+      "morador": "Bento",
+      "pergunta": "Pode tocar uma música pra mim?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! *sorri, pegando um pequeno violão de madeira que está na praça* Vamos ver se consigo tocar algo que te deixe feliz hoje, hein? 🎶",
+      "emocao": "alegre",
+      "ms": 4018,
+      "tokens_entrada": 657,
+      "tokens_saida": 110
+    },
+    {
+      "morador": "Dona Celeste",
+      "pergunta": "A senhora está costurando o quê?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Que legal que você perguntou, querida! Estou costurando um pequeno manto para os nossos pequenos visitantes da ilha. Você gosta de costurar também?",
+      "emocao": "alegre",
+      "ms": 3414,
+      "tokens_entrada": 670,
+      "tokens_saida": 92
+    },
+    {
+      "morador": "Lila",
+      "pergunta": "Oi Lila! Como está o jardim hoje?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Oi, Ana! O jardim está super bonito hoje, com flores coloridas que brilham no sol! Vamos jantar juntas na praça? 🌸",
+      "emocao": "alegre",
+      "ms": 2988,
+      "tokens_entrada": 669,
+      "tokens_saida": 91
+    },
+    {
+      "morador": "Ravena",
+      "pergunta": "O que você está pintando agora?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, você viu meu quadro? É uma cena da praia com um peixe azul que eu não consegui capturar... mas acho que ele está me esperando. (sorriso malicioso) Você quer saber o segredo da cor azul? Talvez você precise de um pouco de... tempo.",
+      "emocao": "alegre",
+      "ms": 3844,
+      "tokens_entrada": 662,
+      "tokens_saida": 122
+    },
+    {
+      "morador": "Otávio",
+      "pergunta": "Qual estrela aparece primeiro à noite?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana... Na praça central, à noite, a estrela mais próxima que brilha com clareza é a Vega. *sussurra* Mas, ouvi dizer que alguns moradores dizem que é a Alfa Centauri que aparece primeiro no horizonte da ilha.",
+      "emocao": "alegre",
+      "ms": 3839,
+      "tokens_entrada": 667,
+      "tokens_saida": 125
+    },
+    {
+      "morador": "Pipa",
+      "pergunta": "Tem alguma novidade na ilha?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Foi hoje? Vou contar tudo o que aconteceu na praça, mas não esquece de não contar pra ninguém que eu falei isso! 😄",
+      "emocao": "alegre",
+      "ms": 3166,
+      "tokens_entrada": 664,
+      "tokens_saida": 93
+    }
+  ],
+  "vram_depois_mb": 5295,
+  "resumo": {
+    "validas": "12/12",
+    "primeira_ms": 42017,
+    "mediana_ms": 3839,
+    "p90_ms": 3903,
+    "max_ms": 4018,
+    "tokens_entrada_medio": 664,
+    "tokens_saida_medio": 100,
+    "tokens_por_segundo": 28.8
+  }
+}

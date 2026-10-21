@@ -101,7 +101,7 @@ func _refresh() -> void:
 		for id in sim.npc_order:
 			var s: String = sim.npcs[id].state
 			states[s] = states.get(s, 0) + 1
-			mem_parts.append("%s %d" % [sim.npcs[id].display_name().get_slice(" ", 0).substr(0, 6), sim.memories.count_for(id)])
+			mem_parts.append("%s %d" % [sim.npcs[id].display_name().trim_prefix("Dona ").substr(0, 7), sim.memories.count_for(id)])
 		lines.append("Moradores: %s" % str(states))
 		lines.append("Memórias: %s" % " · ".join(mem_parts))
 		lines.append("Interações em andamento: %d" % sim.active_interactions.size())

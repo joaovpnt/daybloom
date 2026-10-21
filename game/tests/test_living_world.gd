@@ -186,6 +186,11 @@ func test_emocoes_validadas_movem_o_rosto() -> void:
 	await wait_frames(2)
 	assert_eq(actor.visual.expression, "happy", "alegria → rosto feliz")
 	assert_true(panel.emotion_chip_holder.get_child_count() > 0, "feedback emocional no painel")
+	var chip_text := ""
+	for c in panel.mood_holder.get_children():
+		if not c.is_queued_for_deletion():
+			chip_text += str((c.get_child(0) as Label).text) if c.get_child_count() > 0 and c.get_child(0) is Label else ""
+	assert_true(chip_text.contains("Alegre"), "o chip de humor mostra a reação (sem contradição): %s" % chip_text)
 	panel._apply_validated({"emotion": "triste", "memory_ids": [], "action": null}, "oi")
 	await wait_frames(2)
 	assert_eq(actor.visual.expression, "sad", "tristeza → rosto triste")

@@ -92,6 +92,11 @@ func _ready() -> void:
 	mar.global_position = NavigationServer3D.map_get_closest_point(map, spot + Vector3(4.2, 0, 3))
 	sim.npcs["pipa"].position = pipa.global_position
 	sim.npcs["marina"].position = mar.global_position
+	for id in ["pipa", "marina"]:
+		sim.cancel_interaction(id)
+		sim.npcs[id].partner_id = ""
+		sim.npcs[id].set_state("IDLE", "parado")
+		(w.director.actors[id] as NpcActor).phase = NpcActor.Phase.NEEDS_DECISION
 	sim._pair_cooldowns.clear()
 	w.life._chat_cooldown = 0.0
 	sim.try_start_interaction("pipa", "marina", 1.0)

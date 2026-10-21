@@ -425,6 +425,8 @@ static func _prep(label: String) -> String:
 	for f in feminine:
 		if label.begins_with(f) or label.contains("casa"):
 			return "a"
+	if label.begins_with("jardim") or label.begins_with("parque") or label.begins_with("centro"):
+		return "o"
 	if label.begins_with("píer") or label.begins_with("lago") or label.begins_with("coreto") or label.begins_with("mirante") or label.begins_with("pomar") or label.begins_with("bosque") or label.begins_with("quiosque") or label.begins_with("mural") or label.begins_with("banco"):
 		return "o"
 	return "a"
@@ -938,7 +940,13 @@ func allowed_ai_actions(npc_id: String) -> Dictionary:
 				places.append(place)
 		if not places.is_empty():
 			actions.append("convidar_atividade")
-	return {"actions": actions, "items": items, "places": places}
+	var place_labels := {}
+	for pl in places:
+		place_labels[pl] = Places.poi_label(pl)
+	var item_labels := {}
+	for it in items:
+		item_labels[it] = ItemDB.display_name(it)
+	return {"actions": actions, "items": items, "places": places, "place_labels": place_labels, "item_labels": item_labels}
 
 
 ## Motivo para o morador procurar a jogadora por iniciativa própria.

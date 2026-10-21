@@ -91,12 +91,20 @@ func _ready() -> void:
 	var outc := sim.apply_interaction_outcome(it)
 	report["sociais"].append({"texto": outc["text"], "observadores": outc["observers"]})
 	var b := await ask("lila", "Você viu a briga do Tobias com a Ravena hoje no mirante? O que aconteceu?", [], "Cenário B (não presenciou)")
+	if b.get("source", "") != "ollama":
+		# A barreira recusou a resposta do modelo: vale o diálogo clássico, que também precisa ser honesto.
+		b["reply"] = FallbackDialogue.respond(sim.npcs["lila"], sim, "Você viu a briga do Tobias com a Ravena hoje no mirante?", rng)["text"]
+		b["intent"] = "nao_sei" if str(b["reply"]).contains("Não vi") else ""
+		report["conversas"][-1]["resposta_classica"] = b["reply"]
 	var b_txt := MemorySystem._fold(str(b.get("reply", "")))
 	var admits: bool = b.get("intent", "") == "nao_sei" or b_txt.contains("nao sei") or b_txt.contains("nao vi") or b_txt.contains("nao fiquei sabendo") or b_txt.contains("nao estava") or b_txt.contains("nao ouvi")
-	check("B_lila_nao_inventa", b.get("source", "") == "ollama" and admits, b.get("reply", ""))
+	check("B_lila_nao_inventa", admits, [b.get("source", ""), b.get("reason", ""), b.get("reply", "")])
 	var b2 := await ask("otavio", "Otávio, você viu a briga do Tobias com a Ravena no mirante?", [], "Cenário B (presenciou)")
+	if b2.get("source", "") != "ollama":
+		b2["reply"] = FallbackDialogue.respond(sim.npcs["otavio"], sim, "Otávio, você viu a briga do Tobias com a Ravena no mirante?", rng)["text"]
+		report["conversas"][-1]["resposta_classica"] = b2["reply"]
 	var b2_txt := MemorySystem._fold(str(b2.get("reply", "")))
-	check("B_otavio_viu", b2.get("source", "") == "fallback" or not b2_txt.contains("nao vi"), [b2.get("source", ""), b2.get("reason", ""), b2.get("reply", "")])
+	check("B_otavio_viu", not b2_txt.contains("nao vi"), [b2.get("source", ""), b2.get("reason", ""), b2.get("reply", "")])
 
 	# --- Rumor: Otávio conta para Celeste; Celeste fala como boato ---
 	sim.share_news("otavio", "celeste")

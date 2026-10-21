@@ -1,0 +1,150 @@
+{
+  "modelo": "qwen3:4b",
+  "instalado": true,
+  "vram_antes_mb": 5428,
+  "chamadas": [
+    {
+      "morador": "Lila",
+      "pergunta": "Oi Lila! Como está o jardim hoje?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Oi Ana! O jardim está lindo hoje, os pétalas de margarida estão brilhando! Você está vindo para ver o sol nas folhas?",
+      "emocao": "alegre",
+      "ms": 3462,
+      "tokens_entrada": 801,
+      "tokens_saida": 92
+    },
+    {
+      "morador": "Ravena",
+      "pergunta": "O que você está pintando agora?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, você viu minha última pintura? É um círculo com um risco no meio — parece um desafio para a própria natureza. Mas não tenho tempo pra explicar, já estou correndo pra pegar o sol da manhã.",
+      "emocao": "alegre",
+      "ms": 3807,
+      "tokens_entrada": 794,
+      "tokens_saida": 108
+    },
+    {
+      "morador": "Otávio",
+      "pergunta": "Qual estrela aparece primeiro à noite?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Se você quiser, posso compartilhar mais sobre o céu da ilha.",
+      "emocao": "alegre",
+      "ms": 4135,
+      "tokens_entrada": 799,
+      "tokens_saida": 123
+    },
+    {
+      "morador": "Pipa",
+      "pergunta": "Tem alguma novidade na ilha?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Hoje de manhã eu estava na praça central e vi um grupo de esquilos brincando com folhas. É bom saber que você está aqui, né?",
+      "emocao": "alegre",
+      "ms": 3635,
+      "tokens_entrada": 796,
+      "tokens_saida": 92
+    },
+    {
+      "morador": "Tobias",
+      "pergunta": "Que pão você fez hoje?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Hoje fiz pão com farinha de milho e um pouco de mel. É bom para o dia todo, não é?",
+      "emocao": "alegre",
+      "ms": 3514,
+      "tokens_entrada": 789,
+      "tokens_saida": 88
+    },
+    {
+      "morador": "Marina",
+      "pergunta": "Bora correr na praia?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ei, Ana! Vamos lá, praia é nossa! Tô super animada pra correr com você hoje!",
+      "emocao": "alegre",
+      "ms": 3090,
+      "tokens_entrada": 793,
+      "tokens_saida": 76
+    },
+    {
+      "morador": "Bento",
+      "pergunta": "Pode tocar uma música pra mim?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Oi, Ana! Vou tocar uma música suave pra você. Quer que seja algo da praia ou do céu?",
+      "emocao": "alegre",
+      "ms": 3130,
+      "tokens_entrada": 789,
+      "tokens_saida": 81
+    },
+    {
+      "morador": "Dona Celeste",
+      "pergunta": "A senhora está costurando o quê?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, querida, estou costurando um novo vestido para a nossa próxima festa! Vamos ver como o sol da manhã ilumina os fios de lã.",
+      "emocao": "alegre",
+      "ms": 3518,
+      "tokens_entrada": 802,
+      "tokens_saida": 91
+    },
+    {
+      "morador": "Lila",
+      "pergunta": "Oi Lila! Como está o jardim hoje?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Oi Ana! O jardim está super lindo hoje, com flores de todas as cores! Você vai adorar a praça central, né?",
+      "emocao": "alegre",
+      "ms": 2820,
+      "tokens_entrada": 801,
+      "tokens_saida": 82
+    },
+    {
+      "morador": "Ravena",
+      "pergunta": "O que você está pintando agora?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, você viu? Estou fazendo um quadro com as cores do amanhã — mas ainda não sei se vai ser lindo ou não. Você prefere cores quentes ou frias?",
+      "emocao": "alegre",
+      "ms": 3111,
+      "tokens_entrada": 794,
+      "tokens_saida": 93
+    },
+    {
+      "morador": "Otávio",
+      "pergunta": "Qual estrela aparece primeiro à noite?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Hoje à noite, a estrela mais brilhante que se vê é a Vega. Mas antes, você vai ver o Cisne de Orion? É uma bela cena para observar.",
+      "emocao": "alegre",
+      "ms": 3239,
+      "tokens_entrada": 799,
+      "tokens_saida": 98
+    },
+    {
+      "morador": "Pipa",
+      "pergunta": "Tem alguma novidade na ilha?",
+      "fonte": "ollama",
+      "motivo": null,
+      "resposta": "Ah, Ana! Hoje de manhã fui passear na praça central e vi um novo pássaro azul no jardim da praça. Você viu também?",
+      "emocao": "alegre",
+      "ms": 3023,
+      "tokens_entrada": 796,
+      "tokens_saida": 90
+    }
+  ],
+  "vram_depois_mb": 5271,
+  "resumo": {
+    "validas": "12/12",
+    "primeira_ms": 3462,
+    "mediana_ms": 3239,
+    "p90_ms": 3635,
+    "max_ms": 4135,
+    "tokens_entrada_medio": 796,
+    "tokens_saida_medio": 92,
+    "tokens_por_segundo": 27.6
+  }
+}
