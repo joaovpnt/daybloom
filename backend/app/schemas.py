@@ -33,7 +33,16 @@ MEMORY_TYPES = {
     "npc_interaction",
     "relationship_change",
     "community_event",
+    # 0.3
+    "observation",
+    "rumor",
+    "promise",
+    "goal_progress",
+    "player_conversation",
 }
+MEMORY_CATEGORIES = {"recente", "episodica", "social", "longo_prazo"}
+MEMORY_ORIGINS = {"participacao", "observacao", "comunicacao", "jogadora"}
+MEMORY_VALIDITY = {"valida", "consolidada", "desatualizada", "duvidosa"}
 NEED_KEYS = {"energia", "social", "diversao", "conforto"}
 TRAIT_KEYS = {"sociabilidade", "gentileza", "curiosidade", "coragem", "energia"}
 
@@ -135,6 +144,35 @@ class Memory(_Base):
     consequences: list[str] = Field(default_factory=list)
     event_ref: str
     occurrences: int = Field(default=1, ge=1)
+    # Campos opcionais da 0.3 (saves antigos não os têm).
+    category: Optional[str] = None
+    origin: Optional[str] = None
+    fact: Optional[str] = Field(default=None, max_length=400)
+    interpretation: Optional[str] = Field(default=None, max_length=200)
+    validity: Optional[str] = None
+    importance: Optional[float] = Field(default=None, ge=0, le=1)
+    source_id: Optional[str] = None
+
+    @field_validator("category")
+    @classmethod
+    def _category(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in MEMORY_CATEGORIES:
+            raise ValueError(f"categoria de memória desconhecida: {v}")
+        return v
+
+    @field_validator("origin")
+    @classmethod
+    def _origin(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in MEMORY_ORIGINS:
+            raise ValueError(f"origem de memória desconhecida: {v}")
+        return v
+
+    @field_validator("validity")
+    @classmethod
+    def _validity(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in MEMORY_VALIDITY:
+            raise ValueError(f"validade de memória desconhecida: {v}")
+        return v
 
     @field_validator("type")
     @classmethod
@@ -292,6 +330,68 @@ class DialogueResponse(BaseModel):
     exchange_id: str
     source: Literal["ollama", "fallback"]
     reply: Optional[str] = None
+    emotion: Optional[str] = None
+    intent: Optional[str] = None
+    memory_ids: list[str] = Field(default_factory=list)
+    action: Optional[str] = None
+    action_params: dict[str, Any] = Field(default_factory=dict)
+    discarded: list[str] = Field(default_factory=list)
+    # Compatível com a 0.2.
     suggested_action: Optional[str] = None
     reason: Optional[str] = None
     latency_ms: int = 0
+    queue_ms: int = 0
+    prompt_tokens: int = 0
+    output_tokens: int = 0
+
+
+class InitiativeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    exchange_id: str = Field(min_length=1, max_length=80)
+    npc_id: str = Field(min_length=1, max_length=32)
+    reason: Literal[
+        "agradecer_presente", "contar_novidade", "pedir_ajuda", "convidar", "pergunta", "comentar_acontecimento"
+    ]
+    detail: str = Field(default="", max_length=200)
+    context: dict[str, Any]
+
+
+class NpcChatRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: str = Field(min_length=1, max_length=80)
+    context: dict[str, Any]
+
+
+class NpcChatResponse(BaseModel):
+    request_id: str
+    source: Literal["ollama", "fallback"]
+    line_a: Optional[str] = None
+    line_b: Optional[str] = None
+    reason: Optional[str] = None
+    latency_ms: int = 0
+
+
+class PlanRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: str = Field(min_length=1, max_length=80)
+    npc_id: str = Field(min_length=1, max_length=32)
+    options: list[dict[str, Any]] = Field(min_length=1, max_length=6)
+    context: dict[str, Any]
+
+
+class PlanResponse(BaseModel):
+    request_id: str
+    source: Literal["ollama", "fallback"]
+    option: Optional[str] = None
+    motive: Optional[str] = None
+    reason: Optional[str] = None
+    latency_ms: int = 0
+
+
+class CancelRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: str = Field(min_length=1, max_length=80)

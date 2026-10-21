@@ -1,9 +1,11 @@
-"""Conversas com moradores via Ollama (opcional).
+"""Camada cognitiva: conversas, iniciativas, falas entre moradores e planos.
 
-O modelo de linguagem NÃO é fonte da verdade: ele apenas propõe uma fala e,
-opcionalmente, uma ação de uma lista fechada. O jogo valida qualquer ação antes
-de aplicá-la. Quando o Ollama não responde, devolvemos ``source="fallback"`` e o
-jogo usa seu sistema de diálogos contextualizados.
+O modelo de linguagem NÃO é fonte da verdade. Ele recebe só o que o morador
+sabe (montado pelo ContextBuilder do jogo), responde em JSON estruturado e tudo
+é validado (``ai_contracts``). Todas as chamadas passam pelo orquestrador
+central (uma inferência por vez, com prioridade para a jogadora). Quando algo
+falha, a resposta volta com ``source="fallback"`` e o jogo usa seus diálogos
+clássicos — nada no mundo muda por causa disso.
 """
 
 from __future__ import annotations
@@ -11,18 +13,30 @@ from __future__ import annotations
 import json
 import logging
 import re
-import time
 from typing import Any, Optional
 
 from ..persistence import PersistenceError, SaveRepository
-from ..schemas import DialogueRequest, DialogueResponse
-from .ollama_client import OllamaClient, OllamaError
+from ..schemas import (
+    DialogueRequest,
+    DialogueResponse,
+    InitiativeRequest,
+    NpcChatRequest,
+    NpcChatResponse,
+    PlanRequest,
+    PlanResponse,
+)
+from . import ai_contracts as contracts
+from . import prompt_builder as prompts
+from .ai_orchestrator import AIOrchestrator, AIRequest
+from .ollama_client import ChatResult, OllamaClient, OllamaError
 
 log = logging.getLogger("daybloom.dialogue")
 
+# Compatibilidade com a 0.2 (formato antigo {"fala", "acao"}).
 ALLOWED_ACTIONS = {"nenhuma", "sorrir", "ficar_triste", "lembrar_conversa"}
 MAX_REPLY_CHARS = 360
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+_EMOCAO_PARA_ACAO_LEGADA = {"alegre": "sorrir", "animada": "sorrir", "triste": "ficar_triste"}
 
 
 def _clip(text: Any, limit: int) -> str:
@@ -31,54 +45,11 @@ def _clip(text: Any, limit: int) -> str:
 
 
 def build_messages(request: DialogueRequest) -> list[dict[str, str]]:
-    """Monta um contexto limitado e estruturado para o modelo."""
-    ctx = request.context
-    npc = ctx.get("npc", {}) or {}
-    emotion = ctx.get("emotion", {}) or {}
-    relation = ctx.get("relationship", {}) or {}
-    clock = ctx.get("time", {}) or {}
-    memories = [_clip(m, 160) for m in (ctx.get("memories") or [])[:5]]
-    facts = [_clip(f, 160) for f in (ctx.get("recent_facts") or [])[:5]]
-
-    persona = (
-        f"Você é {_clip(npc.get('name'), 30)}, um(a) morador(a) {_clip(npc.get('species'), 20)} "
-        f"da ilha {_clip(ctx.get('island_name', 'Daybloom'), 30)}, que trabalha como "
-        f"{_clip(npc.get('occupation'), 40)}. Personalidade: {_clip(npc.get('personality_summary'), 200)}. "
-        f"Jeito de falar: {_clip(npc.get('speech_style'), 160)}. "
-        f"Gosta de: {_clip(', '.join(npc.get('likes', [])), 120)}. "
-        f"Não gosta de: {_clip(', '.join(npc.get('dislikes', [])), 120)}. "
-        f"Objetivo pessoal: {_clip(npc.get('personal_goal'), 120)}."
-    )
-    situation = (
-        f"Agora é dia {clock.get('day', 1)}, {_clip(clock.get('label', ''), 20)} ({_clip(clock.get('period', ''), 12)}). "
-        f"Seu humor: {_clip(emotion.get('mood', 'neutro'), 20)}. "
-        f"Relação com {_clip(ctx.get('player_name', 'a jogadora'), 24)}: {_clip(relation.get('label', 'conhecida'), 30)} "
-        f"(afinidade {relation.get('affinity', 0)}, confiança {relation.get('trust', 0)})."
-    )
-    memory_block = "\n".join(f"- {m}" for m in memories) or "- (nenhuma lembrança relevante)"
-    facts_block = "\n".join(f"- {f}" for f in facts) or "- (nada novo)"
-    rules = (
-        "Regras: responda SEMPRE em português brasileiro, em 1 a 3 frases curtas, de forma natural, "
-        "aconchegante e coerente com sua personalidade. Use apenas os fatos fornecidos; não invente "
-        "acontecimentos, itens, pessoas ou lugares. Você não pode dar itens, dinheiro nem mudar nada no "
-        "mundo. Responda somente com JSON no formato "
-        '{"fala": "sua resposta", "acao": "nenhuma|sorrir|ficar_triste|lembrar_conversa"}. '
-        "Use lembrar_conversa apenas se a jogadora contar algo pessoal e importante."
-    )
-    system = (
-        f"{persona}\n{situation}\nLembranças relevantes:\n{memory_block}\n"
-        f"Fatos recentes confirmados:\n{facts_block}\n{rules}"
-    )
-    messages = [{"role": "system", "content": system}]
-    for turn in request.history[-6:]:
-        role = "user" if turn.role == "jogadora" else "assistant"
-        messages.append({"role": role, "content": _clip(turn.text, 300)})
-    messages.append({"role": "user", "content": _clip(request.message, 300)})
-    return messages
+    return prompts.build_dialogue_messages(request.context, request.history, request.message)
 
 
 def parse_model_output(raw: str) -> tuple[str, str]:
-    """Extrai fala e ação da saída do modelo, sanitizando o resultado."""
+    """Formato legado da 0.2 (mantido para compatibilidade e testes)."""
     text = _THINK_RE.sub("", raw).strip()
     reply: Optional[str] = None
     action = "nenhuma"
@@ -108,51 +79,180 @@ class DialogueService:
         client: Optional[OllamaClient],
         repository: Optional[SaveRepository],
         enabled: bool = True,
+        orchestrator: Optional[AIOrchestrator] = None,
+        max_concurrent: int = 1,
     ) -> None:
         self.client = client
         self.repository = repository
         self.enabled = enabled and client is not None
+        if orchestrator is None:
+            orchestrator = AIOrchestrator(self._run if client is not None else None, max_concurrent, self.enabled)
+        self.orchestrator = orchestrator
+
+    async def _run(self, messages: list[dict[str, str]], fmt: Any, options: dict[str, Any]) -> ChatResult:
+        assert self.client is not None
+        return await self.client.generate(
+            messages,
+            fmt=fmt,
+            num_predict=int(options.get("num_predict", 200)),
+            temperature=float(options.get("temperature", 0.7)),
+            num_ctx=int(options.get("num_ctx", 4096)),
+        )
+
+    # --- conversa com a jogadora ----------------------------------------------
 
     async def respond(self, request: DialogueRequest) -> DialogueResponse:
-        started = time.perf_counter()
         if not self.enabled:
-            return DialogueResponse(
-                exchange_id=request.exchange_id, source="fallback", reason="ollama_desativado"
-            )
-        try:
-            raw = await self.client.chat(build_messages(request))
-            reply, action = parse_model_output(raw)
-        except OllamaError as exc:
-            log.info("fallback de diálogo (%s): %s", exc.reason, exc)
-            return DialogueResponse(
-                exchange_id=request.exchange_id,
-                source="fallback",
-                reason=exc.reason,
-                latency_ms=int((time.perf_counter() - started) * 1000),
-            )
-        latency = int((time.perf_counter() - started) * 1000)
-        if self.repository is not None:
-            try:
-                self.repository.record_dialogue(
-                    {
-                        "exchange_id": request.exchange_id,
-                        "save_slot_id": request.save_slot_id,
-                        "island_id": request.island_id,
-                        "player_id": request.player_id,
-                        "npc_id": request.npc_id,
-                        "message": request.message,
-                        "reply": reply,
-                        "suggested_action": action,
-                        "source": "ollama",
-                        "day": (request.context.get("time") or {}).get("day"),
-                    }
-                )
-            except PersistenceError as exc:
-                log.warning("histórico de diálogo não gravado: %s", exc)
-        return DialogueResponse(
-            exchange_id=request.exchange_id,
-            source="ollama",
-            reply=reply,
-            suggested_action=action,
-            latency_ms=latency,
+            return DialogueResponse(exchange_id=request.exchange_id, source="fallback", reason="ollama_desativado")
+        perm = contracts.Permissoes.from_context(request.context)
+        req = AIRequest(
+            request_id=request.exchange_id,
+            kind="dialogo_jogadora",
+            npc_id=request.npc_id,
+            messages=build_messages(request),
+            fmt=contracts.json_schema_resposta(),
+            options={"num_predict": 220, "temperature": 0.7},
+            dedup_key=f"dialogo:{request.exchange_id}",
+            supersede_key=f"dialogo:{request.npc_id}",
+            max_wait_s=20.0,
         )
+        timeout = (self.client.timeout_s if self.client else 25.0) + 25.0
+        result = await self.orchestrator.submit(req, overall_timeout_s=timeout)
+        base = {
+            "exchange_id": request.exchange_id,
+            "latency_ms": result.latency_ms,
+            "queue_ms": result.queue_ms,
+            "prompt_tokens": result.prompt_tokens,
+            "output_tokens": result.output_tokens,
+        }
+        if not result.ok:
+            log.info("fallback de diálogo (%s)", result.reason)
+            return DialogueResponse(source="fallback", reason=result.reason, **base)
+        try:
+            valid = contracts.validar_resposta(result.content, perm)
+        except contracts.RespostaInvalida as exc:
+            log.info("resposta do modelo rejeitada (%s): %s", exc.reason, exc)
+            self.orchestrator.recent_errors.append({"tipo": "dialogo_jogadora", "motivo": exc.reason, "quando": ""})
+            return DialogueResponse(source="fallback", reason=exc.reason, **base)
+        legacy = valid.acao or _EMOCAO_PARA_ACAO_LEGADA.get(valid.emocao, "nenhuma")
+        self._record(request, valid, result.latency_ms)
+        return DialogueResponse(
+            source="ollama",
+            reply=valid.fala,
+            emotion=valid.emocao,
+            intent=valid.intencao,
+            memory_ids=valid.memoria_ids,
+            action=valid.acao,
+            action_params=valid.parametros,
+            suggested_action=legacy,
+            discarded=valid.descartes,
+            **base,
+        )
+
+    def _record(self, request: DialogueRequest, valid: contracts.RespostaValidada, latency: int) -> None:
+        if self.repository is None:
+            return
+        try:
+            self.repository.record_dialogue(
+                {
+                    "exchange_id": request.exchange_id,
+                    "save_slot_id": request.save_slot_id,
+                    "island_id": request.island_id,
+                    "player_id": request.player_id,
+                    "npc_id": request.npc_id,
+                    "message": request.message,
+                    "reply": valid.fala,
+                    "emotion": valid.emocao,
+                    "intent": valid.intencao,
+                    "memory_ids": valid.memoria_ids,
+                    "suggested_action": valid.acao,
+                    "action_params": valid.parametros,
+                    "source": "ollama",
+                    "latency_ms": latency,
+                    "day": (request.context.get("time") or {}).get("day"),
+                }
+            )
+        except PersistenceError as exc:
+            log.warning("histórico de diálogo não gravado: %s", exc)
+
+    # --- iniciativa do morador ---------------------------------------------------
+
+    async def initiative(self, request: InitiativeRequest) -> DialogueResponse:
+        if not self.enabled:
+            return DialogueResponse(exchange_id=request.exchange_id, source="fallback", reason="ollama_desativado")
+        perm = contracts.Permissoes.from_context(request.context)
+        req = AIRequest(
+            request_id=request.exchange_id,
+            kind="iniciativa",
+            npc_id=request.npc_id,
+            messages=prompts.build_initiative_messages(request.context, request.reason, request.detail),
+            fmt=contracts.json_schema_resposta(),
+            options={"num_predict": 160, "temperature": 0.75},
+            dedup_key=f"iniciativa:{request.npc_id}:{request.reason}:{request.detail[:40]}",
+            supersede_key=f"iniciativa:{request.npc_id}",
+            max_wait_s=12.0,
+        )
+        result = await self.orchestrator.submit(req, overall_timeout_s=40.0)
+        base = {"exchange_id": request.exchange_id, "latency_ms": result.latency_ms, "queue_ms": result.queue_ms,
+                "prompt_tokens": result.prompt_tokens, "output_tokens": result.output_tokens}
+        if not result.ok:
+            return DialogueResponse(source="fallback", reason=result.reason, **base)
+        try:
+            valid = contracts.validar_resposta(result.content, perm)
+        except contracts.RespostaInvalida as exc:
+            return DialogueResponse(source="fallback", reason=exc.reason, **base)
+        return DialogueResponse(source="ollama", reply=valid.fala, emotion=valid.emocao, intent=valid.intencao,
+                                memory_ids=valid.memoria_ids, action=valid.acao, action_params=valid.parametros,
+                                discarded=valid.descartes, **base)
+
+    # --- falas entre moradores ------------------------------------------------------
+
+    async def npc_chat(self, request: NpcChatRequest) -> NpcChatResponse:
+        if not self.enabled:
+            return NpcChatResponse(request_id=request.request_id, source="fallback", reason="ollama_desativado")
+        req = AIRequest(
+            request_id=request.request_id,
+            kind="conversa_moradores",
+            npc_id=f"{request.context.get('a', {}).get('id', '')}+{request.context.get('b', {}).get('id', '')}",
+            messages=prompts.build_npc_chat_messages(request.context),
+            fmt=contracts.json_schema_falas_entre_moradores(),
+            options={"num_predict": 90, "temperature": 0.8},
+            dedup_key=f"npc_chat:{request.request_id}",
+            max_wait_s=8.0,
+        )
+        result = await self.orchestrator.submit(req, overall_timeout_s=30.0)
+        if not result.ok:
+            return NpcChatResponse(request_id=request.request_id, source="fallback", reason=result.reason)
+        try:
+            a, b = contracts.validar_falas_entre_moradores(result.content)
+        except contracts.RespostaInvalida as exc:
+            return NpcChatResponse(request_id=request.request_id, source="fallback", reason=exc.reason)
+        return NpcChatResponse(request_id=request.request_id, source="ollama", line_a=a, line_b=b,
+                               latency_ms=result.latency_ms)
+
+    # --- planos de objetivos ---------------------------------------------------------
+
+    async def plan(self, request: PlanRequest) -> PlanResponse:
+        ids = [str(o.get("id")) for o in request.options if o.get("id")]
+        if not self.enabled or not ids:
+            return PlanResponse(request_id=request.request_id, source="fallback", reason="ollama_desativado")
+        req = AIRequest(
+            request_id=request.request_id,
+            kind="plano_objetivo",
+            npc_id=request.npc_id,
+            messages=prompts.build_plan_messages(request.context, request.options),
+            fmt=contracts.json_schema_plano(),
+            options={"num_predict": 80, "temperature": 0.5},
+            dedup_key=f"plano:{request.npc_id}:{','.join(ids)}",
+            supersede_key=f"plano:{request.npc_id}",
+            max_wait_s=30.0,
+        )
+        result = await self.orchestrator.submit(req, overall_timeout_s=60.0)
+        if not result.ok:
+            return PlanResponse(request_id=request.request_id, source="fallback", reason=result.reason)
+        try:
+            option, reason = contracts.validar_plano(result.content, ids)
+        except contracts.RespostaInvalida as exc:
+            return PlanResponse(request_id=request.request_id, source="fallback", reason=exc.reason)
+        return PlanResponse(request_id=request.request_id, source="ollama", option=option, motive=reason,
+                            latency_ms=result.latency_ms)

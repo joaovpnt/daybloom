@@ -14,7 +14,18 @@ from fastapi.responses import JSONResponse
 from . import __version__
 from .config import Settings, get_settings
 from .persistence import PersistenceError, PersistenceUnavailable, RevisionConflict, SaveRepository
-from .schemas import SLOT_PATTERN, DialogueRequest, DialogueResponse, SaveWriteRequest
+from .schemas import (
+    SLOT_PATTERN,
+    CancelRequest,
+    DialogueRequest,
+    DialogueResponse,
+    InitiativeRequest,
+    NpcChatRequest,
+    NpcChatResponse,
+    PlanRequest,
+    PlanResponse,
+    SaveWriteRequest,
+)
 from .services.dialogue_service import DialogueService
 from .services.ollama_client import OllamaClient
 from .services.save_service import SaveService, SaveValidationError
@@ -36,7 +47,9 @@ def create_app(
         repository = MongoSaveRepository(settings.mongo_uri, settings.mongo_db, settings.mongo_timeout_ms)
     ollama = OllamaClient(settings.ollama_url, settings.ollama_model, settings.ollama_timeout_s)
     if dialogue_service is None:
-        dialogue_service = DialogueService(ollama, repository, enabled=settings.ollama_enabled)
+        dialogue_service = DialogueService(
+            ollama, repository, enabled=settings.ollama_enabled, max_concurrent=settings.ai_max_concurrent
+        )
     save_service = SaveService(repository)
 
     app = FastAPI(title="Daybloom — backend local", version=__version__)
@@ -52,9 +65,16 @@ def create_app(
             repository.ping()
         except PersistenceError as exc:
             mongo = {"ok": False, "error": str(exc), "database": settings.mongo_db}
-        ollama_info = {"enabled": dialogue_service.enabled, "model": settings.ollama_model, "reachable": False}
+        ollama_info = {
+            "enabled": dialogue_service.enabled,
+            "model": settings.ollama_model,
+            "reachable": False,
+            "model_installed": False,
+        }
         if dialogue_service.enabled and dialogue_service.client is not None:
-            ollama_info["reachable"] = await dialogue_service.client.is_reachable()
+            names = await dialogue_service.client.list_models()
+            ollama_info["reachable"] = names is not None
+            ollama_info["model_installed"] = dialogue_service.client.model_installed(names)
         return {"status": "ok", "version": __version__, "mongo": mongo, "ollama": ollama_info}
 
     @app.get("/api/v1/saves/{slot_id}")
@@ -107,5 +127,35 @@ def create_app(
     @app.post("/api/v1/dialogue", response_model=DialogueResponse)
     async def dialogue(body: DialogueRequest) -> DialogueResponse:
         return await dialogue_service.respond(body)
+
+    @app.post("/api/v1/ai/initiative", response_model=DialogueResponse)
+    async def initiative(body: InitiativeRequest) -> DialogueResponse:
+        return await dialogue_service.initiative(body)
+
+    @app.post("/api/v1/ai/npc-chat", response_model=NpcChatResponse)
+    async def npc_chat(body: NpcChatRequest) -> NpcChatResponse:
+        return await dialogue_service.npc_chat(body)
+
+    @app.post("/api/v1/ai/plan", response_model=PlanResponse)
+    async def plan(body: PlanRequest) -> PlanResponse:
+        return await dialogue_service.plan(body)
+
+    @app.post("/api/v1/ai/cancel")
+    async def cancel(body: CancelRequest) -> dict:
+        return {"request_id": body.request_id, "cancelled": dialogue_service.orchestrator.cancel(body.request_id)}
+
+    @app.get("/api/v1/ai/status")
+    async def ai_status() -> dict:
+        status = dialogue_service.orchestrator.status()
+        status["modelo"] = settings.ollama_model
+        status["timeout_s"] = settings.ollama_timeout_s
+        if dialogue_service.client is not None and dialogue_service.enabled:
+            names = await dialogue_service.client.list_models()
+            status["ollama_acessivel"] = names is not None
+            status["modelo_instalado"] = dialogue_service.client.model_installed(names)
+        else:
+            status["ollama_acessivel"] = False
+            status["modelo_instalado"] = False
+        return status
 
     return app

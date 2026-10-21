@@ -61,6 +61,7 @@ class Settings:
     ollama_model: str = "qwen3:4b"
     ollama_enabled: bool = True
     ollama_timeout_s: float = 25.0
+    ai_max_concurrent: int = 1
     log_level: str = "info"
     extra: dict = field(default_factory=dict)
 
@@ -81,5 +82,6 @@ def get_settings() -> Settings:
         ollama_model=os.environ.get("DAYBLOOM_OLLAMA_MODEL", "qwen3:4b"),
         ollama_enabled=_env_bool("DAYBLOOM_OLLAMA_ENABLED", True),
         ollama_timeout_s=_env_float("DAYBLOOM_OLLAMA_TIMEOUT_S", 25.0),
+        ai_max_concurrent=max(1, min(4, _env_int("DAYBLOOM_AI_MAX_CONCURRENT", 1))),
         log_level=os.environ.get("DAYBLOOM_LOG_LEVEL", "info"),
     )

@@ -134,14 +134,14 @@ class ParseTests(unittest.TestCase):
         messages = build_messages(make_request())
         system = messages[0]["content"]
         self.assertIn("Lila", system)
-        self.assertIn("português brasileiro", system)
-        self.assertLessEqual(system.count("Ana deu uma margarida"), 5)
-        self.assertEqual(messages[-1]["content"], "Oi! Como está seu dia?")
+        self.assertIn("português do Brasil", system)
+        self.assertLessEqual(system.count("Ana deu uma margarida"), 6)
+        self.assertEqual(messages[-1]["content"], "Ana diz: «Oi! Como está seu dia?»")
 
 
 class ServiceTests(unittest.TestCase):
     def test_resposta_do_modelo(self):
-        with FakeOllama('{"fala": "Oi, Ana! Hoje regamos as tulipas.", "acao": "sorrir"}') as fake:
+        with FakeOllama('{"fala": "Oi, Ana! Hoje regamos as tulipas.", "emocao": "alegre", "intencao": "conversar", "memoria_referenciada_ids": [], "acao_sugerida": null}') as fake:
             repo = MemorySaveRepository()
             service = DialogueService(OllamaClient(fake.url, "qwen3:4b", 5.0), repo)
             response = run(service.respond(make_request()))
