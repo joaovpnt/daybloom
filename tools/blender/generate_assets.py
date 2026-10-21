@@ -3,7 +3,8 @@
 Uso (Windows, na raiz do repositório):
     blender --background --factory-startup --python tools/blender/generate_assets.py -- [categorias]
 
-Categorias: characters, vegetation, buildings, props, renders (padrão: todas).
+Categorias: characters, vegetation, buildings, props, residence, furniture,
+renders (padrão: todas).
 Saídas:
     assets/blender/<categoria>/*.blend      fontes editáveis
     game/assets/models/<categoria>/*.glb    modelos usados pelo Godot
@@ -26,7 +27,7 @@ import bpy  # noqa: E402
 import dbkit  # noqa: E402
 import importlib  # noqa: E402
 
-for _m in ("dbkit", "characters", "environment", "renders"):
+for _m in ("dbkit", "characters", "environment", "renders", "residence"):
     if _m in sys.modules:
         importlib.reload(sys.modules[_m])
 
@@ -66,6 +67,14 @@ def gen_environment(kind: str) -> list[str]:
     return environment.generate(kind, BLEND_DIR, MODEL_DIR, log)
 
 
+def gen_residence(kind: str) -> list[str]:
+    import residence
+
+    if kind == "furniture":
+        return residence.generate_furniture(BLEND_DIR, MODEL_DIR, log)
+    return residence.generate_residence(BLEND_DIR, MODEL_DIR, log)
+
+
 def gen_renders() -> list[str]:
     import renders
 
@@ -73,7 +82,7 @@ def gen_renders() -> list[str]:
 
 
 def main(argv: list[str]) -> int:
-    cats = argv or ["characters", "vegetation", "buildings", "props", "renders"]
+    cats = argv or ["characters", "vegetation", "buildings", "props", "residence", "furniture", "renders"]
     produced = []
     ok = True
     for cat in cats:
@@ -83,6 +92,8 @@ def main(argv: list[str]) -> int:
                 produced += gen_characters()
             elif cat in ("vegetation", "buildings", "props"):
                 produced += gen_environment(cat)
+            elif cat in ("residence", "furniture"):
+                produced += gen_residence(cat)
             elif cat == "renders":
                 produced += gen_renders()
             else:

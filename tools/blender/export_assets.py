@@ -31,6 +31,11 @@ TARGETS = {
     os.path.join("environment", "buildings"): "buildings",
     os.path.join("environment", "props"): "props",
 }
+# 0.4: um diretório com dois arquivos de destinos diferentes.
+BY_FILE = {
+    os.path.join("residence", "building.blend"): "residence",
+    os.path.join("residence", "furniture.blend"): "furniture",
+}
 
 
 def main() -> int:
@@ -43,6 +48,15 @@ def main() -> int:
                 dbkit.export_collection(col, os.path.join(MODELS, sub, f"{col.name}.glb"), animations=animated)
                 count += 1
                 print(f"exportado: {sub}/{col.name}.glb")
+    for rel, sub in BY_FILE.items():
+        path = os.path.join(BLEND, rel)
+        if not os.path.exists(path):
+            continue
+        bpy.ops.wm.open_mainfile(filepath=path)
+        for col in bpy.context.scene.collection.children:
+            dbkit.export_collection(col, os.path.join(MODELS, sub, f"{col.name}.glb"))
+            count += 1
+            print(f"exportado: {sub}/{col.name}.glb")
     print(f"{count} modelos exportados")
     return 0
 
