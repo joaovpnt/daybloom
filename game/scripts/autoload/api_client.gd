@@ -80,9 +80,26 @@ func check_health() -> Dictionary:
 	if res["ok"]:
 		var data: Dictionary = res["data"]
 		status["mongo"] = bool(data.get("mongo", {}).get("ok", false))
-		status["ollama"] = bool(data.get("ollama", {}).get("reachable", false))
+		var oll: Dictionary = data.get("ollama", {})
+		status["ollama_reachable"] = bool(oll.get("reachable", false))
+		status["ollama_model"] = str(oll.get("model", ""))
+		# Conversas por IA só com o Ollama acessível E o modelo instalado.
+		status["ollama"] = status["ollama_reachable"] and bool(oll.get("model_installed", oll.get("reachable", false)))
+		if status["ollama_reachable"] and not status["ollama"]:
+			status["ollama_error"] = "modelo %s não instalado (ollama pull %s)" % [status["ollama_model"], status["ollama_model"]]
 		if not status["mongo"]:
 			status["error"] = str(data.get("mongo", {}).get("error", "MongoDB indisponível"))
 	last_health = status
 	EventBus.backend_status_changed.emit(status)
 	return status
+
+
+## Estado do orquestrador de IA (fila, latência, erros) para o painel F3.
+func ai_status() -> Dictionary:
+	var res := await request_json(HTTPClient.METHOD_GET, "/api/v1/ai/status", null, 2.5)
+	return res["data"] if res["ok"] else {}
+
+
+## Cancela uma solicitação de IA (não espera a resposta).
+func cancel_ai(request_id: String) -> void:
+	request_json(HTTPClient.METHOD_POST, "/api/v1/ai/cancel", {"request_id": request_id}, 3.0)

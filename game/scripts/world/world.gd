@@ -8,6 +8,7 @@ signal world_ready()
 var builder: IslandBuilder
 var day_night: DayNight
 var director: NpcDirector
+var life: LifeCoordinator
 var player: Player
 var camera: CameraRig
 var hud: Hud
@@ -51,6 +52,10 @@ func _ready() -> void:
 	add_child(player)
 	player.global_position = GameState.player_position
 	player.rotation.y = GameState.player_rotation
+	life = LifeCoordinator.new()
+	life.name = "VidaSocial"
+	add_child(life)
+	life.setup(GameState.sim, director, player)
 	camera = CameraRig.new()
 	camera.target = player
 	add_child(camera)
@@ -136,6 +141,8 @@ func _build_ui() -> void:
 
 func _set_modal(name_: String) -> void:
 	_modal = name_
+	if life:
+		life.blocked = _modal != ""
 	if player:
 		player.input_enabled = _modal == ""
 		if _modal != "":
@@ -226,9 +233,14 @@ func _on_dialogue_requested(npc_id: String) -> void:
 		EventBus.toast_requested.emit("%s está dormindo. Melhor não acordar..." % npc.display_name())
 		return
 	var actor := director.get_actor(npc_id)
+	var initiative := {}
+	if actor.is_waiting_for_player() and not actor.initiative.is_empty():
+		initiative = life.take_initiative(npc_id)
+	elif life.active_initiative_npc != "" and life.active_initiative_npc != npc_id:
+		life.ignore_initiative()
 	actor.begin_player_talk(player)
 	player.face_towards(actor.global_position)
-	dialogue_panel.open(npc_id)
+	dialogue_panel.open(npc_id, initiative)
 	_set_modal("dialogue")
 
 

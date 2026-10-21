@@ -40,6 +40,16 @@ static func _has_any(text: String, words: Array) -> bool:
 
 static func detect_intent(message: String, npc_id: String) -> Dictionary:
 	var t := normalize(message)
+	var conflict_words := ["briga", "brigad", "brigou", "brigaram", "discut", "desentend", "pazes"]
+	if _has_any(t, conflict_words):
+		var targets := []
+		for other_id in NPC_NAME_KEYS:
+			for key in NPC_NAME_KEYS[other_id]:
+				if t.contains(key) and not targets.has(other_id):
+					targets.append(other_id)
+		return {"intent": "conflict", "targets": targets}
+	if _has_any(t, ["presente", "dei pra voce", "te dei", "te entreguei"]) and _has_any(t, ["lembra", "gostou", "dei", "entreguei", "usando", "guardou"]):
+		return {"intent": "gift_memory"}
 	for other_id in NPC_NAME_KEYS:
 		if other_id == npc_id:
 			continue
@@ -151,7 +161,11 @@ static func respond(npc: NpcState, sim: Simulation, message: String, rng: Random
 		"likes":
 			text = "Eu gosto muito de %s. Já %s... não é muito a minha praia." % [_tags_text(def.likes), _tags_text(def.dislikes)] + _pick(voice["tail"], rng)
 		"goal":
-			text = "Meu sonho? %s. Já estou com uns %d%% do caminho!" % [def.personal_goal, int(npc.goal_progress * 100.0)] + _pick(voice["tail"], rng)
+			text = _goal_line(npc, sim) + _pick(voice["tail"], rng)
+		"conflict":
+			text = _conflict_line(npc, sim, info.get("targets", []))
+		"gift_memory":
+			text = _gift_memory_line(npc, sim)
 		"work":
 			text = "Sou %s aqui na ilha. Agora mesmo eu estava %s." % [def.occupation, npc.activity if npc.activity != "conversando com " + sim.player_name else "por aí"] + _pick(voice["tail"], rng)
 		"memory":
@@ -217,16 +231,83 @@ static func _recent_social_memory(npc: NpcState, sim: Simulation) -> String:
 
 
 static func _news(npc: NpcState, sim: Simulation, rng: RandomNumberGenerator) -> String:
-	var recent: Array = sim.journal.recent(8)
-	recent.reverse()
-	for e in recent:
-		if e["kind"] in ["friendly_chat", "shared_activity", "disagreement", "reconciliation", "community_event"] and (e["participants"] as Array).size() >= 1:
-			var t: String = e["text"]
-			if (e["participants"] as Array).has(npc.id):
-				return "Olha só: " + t.substr(0, 1).to_lower() + t.substr(1) + _pick(_voice(npc)["tail"], rng)
-			if npc.id == "pipa" or npc.trait_value("sociabilidade") > 0.6:
-				return "Fiquei sabendo que " + t.substr(0, 1).to_lower() + t.substr(1) + _pick(_voice(npc)["tail"], rng)
-	return "Hoje está calmo. Eu estava %s." % (npc.activity if not npc.activity.begins_with("conversando com " + sim.player_name) else "cuidando das minhas coisas")
+	# Só conta o que este morador sabe: participou, viu ou ouviu de alguém.
+	for m in sim.memories.known_events(npc.id, 1, sim.day, 6):
+		var fact := str(m.get("public_fact", m.get("fact", m["description"])))
+		if fact == "":
+			continue
+		match str(m.get("origin", "participacao")):
+			"comunicacao":
+				var src: String = sim.npcs[m["source_id"]].display_name() if sim.npcs.has(str(m.get("source_id", ""))) else "alguém"
+				return "%s me contou que %s Mas eu não vi, hein?" % [src, _lower_first(fact)] + _pick(_voice(npc)["tail"], rng)
+			"observacao":
+				return "Eu vi com estes olhos: " + _lower_first(str(m.get("fact", fact)).trim_prefix("Viu ")) + _pick(_voice(npc)["tail"], rng)
+			_:
+				return "Olha só: " + _lower_first(fact) + _pick(_voice(npc)["tail"], rng)
+	return "Que eu saiba, nada de novo. Eu estava %s." % (npc.activity if not npc.activity.begins_with("conversando com " + sim.player_name) else "cuidando das minhas coisas")
+
+
+static func _lower_first(t: String) -> String:
+	# Mantém nomes próprios com maiúscula.
+	for npc_id in NPC_NAME_KEYS:
+		if normalize(t).begins_with(npc_id) or t.begins_with("Dona"):
+			return t
+	return t.substr(0, 1).to_lower() + t.substr(1)
+
+
+static func _goal_line(npc: NpcState, sim: Simulation) -> String:
+	var g := sim.goal_context(npc.id)
+	if g.get("completed", false):
+		return "Eu consegui: %s! Ainda estou nas nuvens." % str(g["title"]).to_lower()
+	var line := "Meu sonho? %s. Agora estou tentando %s (uns %d%% do caminho)." % [g["title"], g["current_step"], int(g["progress_pct"])]
+	if not (g["needs"] as Array).is_empty():
+		line += " Se você encontrar %s, me ajudaria muito!" % " ou ".join((g["needs"] as Array).slice(0, 2)).to_lower()
+	return line
+
+
+## Perguntas sobre brigas: responde só com o que sabe; se não sabe, diz.
+static func _conflict_line(npc: NpcState, sim: Simulation, targets: Array) -> String:
+	var others: Array = targets.filter(func(t): return t != npc.id)
+	var about_self := targets.has(npc.id) or others.size() <= 1
+	if about_self and others.size() == 1:
+		var other: NpcState = sim.npcs[others[0]]
+		var rel: Dictionary = sim.relationships.get_rel(npc.id, other.id)
+		if bool(rel.get("conflict_open", false)):
+			return "Com %s? É... a gente se desentendeu e ainda não fizemos as pazes." % other.display_name()
+		for m in sim.memories.retrieve(npc.id, {"participants": [other.id], "keywords": ["desentendeu", "pazes"], "now_abs": sim.now_abs()}, 4):
+			if str(m["description"]).begins_with("Fez as pazes") and (m["participants"] as Array).has(other.id):
+				return "Com %s? Já fizemos as pazes, ainda bem." % other.display_name()
+		return "Brigad%s com %s? Que eu saiba, não tivemos briga nenhuma." % [npc.def.article(), other.display_name()]
+	# Briga entre outros: só se viu, participou ou ouviu falar.
+	for m in sim.memories.list_for(npc.id):
+		var parts: Array = m["participants"]
+		var mentions_all := true
+		for o in others:
+			if not parts.has(o):
+				mentions_all = false
+		var fact := str(m.get("fact", m["description"]))
+		if not mentions_all or not (normalize(fact).contains("discut") or normalize(fact).contains("desentend")):
+			continue
+		match str(m.get("origin", "")):
+			"observacao":
+				return "Eu vi, sim: " + _lower_first(fact.trim_prefix("Viu "))
+			"comunicacao":
+				return "Só ouvi falar... " + fact + " Mas não sei se é verdade."
+	var names := []
+	for o in others:
+		names.append(sim.npcs[o].display_name())
+	if names.is_empty():
+		return "Briga? Não fiquei sabendo de nada disso."
+	return "Não vi nem ouvi nada sobre briga entre %s. Prefiro não inventar." % " e ".join(names)
+
+
+static func _gift_memory_line(npc: NpcState, sim: Simulation) -> String:
+	var mems := sim.memories.retrieve(npc.id, {"participants": [sim.player_id], "types": ["gift_received"], "keywords": ["presente"], "now_abs": sim.now_abs()}, 4)
+	for m in mems:
+		if m["type"] == "gift_received" and str(m["description"]).begins_with("Recebeu"):
+			var d := str(m["description"]).trim_prefix("Recebeu ")
+			return "Claro que lembro! No dia %d você me deu %s" % [int(m["day"]), d.substr(0, d.find(" de ")) + "."] + (" Eu adorei!" if d.contains("adorou") else "")
+	return "Presente? Acho que você ainda não me deu nenhum... ou eu esqueci, mas não acho que esqueceria!"
 
 
 static func _memory_line(npc: NpcState, sim: Simulation, rng: RandomNumberGenerator) -> String:
@@ -312,3 +393,40 @@ static func gift_reaction(npc: NpcState, item_id: String, result: Dictionary, rn
 				return "Ah... %s. Obrigad%s pela intenção, de verdade." % [item.to_lower(), npc.def.article()]
 			return "%s? Hmm... não é bem o meu estilo." % item
 	return "Que gentil, %s! Obrigad%s." % [ItemDB.with_article(item_id).to_lower(), npc.def.article()] + tail
+
+
+## Primeira fala quando o morador procura a jogadora por iniciativa própria.
+static func initiative_line(npc: NpcState, sim: Simulation, cand: Dictionary, rng: RandomNumberGenerator) -> String:
+	var name := sim.player_name
+	var tail := _pick(_voice(npc)["tail"], rng)
+	match str(cand.get("reason", "")):
+		"agradecer_presente":
+			return "%s! Queria te agradecer de novo pelo presente (%s). Fiquei pensando nele o dia todo!" % [name, str(cand.get("detail", "")).to_lower()] + tail
+		"pedir_ajuda":
+			var g := sim.goal_context(npc.id)
+			var needs: Array = g.get("needs", [])
+			return "Ei, %s! Posso te pedir uma ajudinha? Estou tentando %s e precisaria de %s." % [name, g.get("current_step", "avançar no meu projeto"), " ou ".join(needs.slice(0, 2)).to_lower()] + tail
+		"contar_novidade":
+			var detail := str(cand.get("detail", ""))
+			if cand.get("is_rumor", false):
+				return "%s, você ficou sabendo? %s Mas é só o que me contaram, tá?" % [name, detail.substr(detail.find(")") + 2) if detail.begins_with("(") else detail]
+			return "%s! Tenho uma novidade: %s" % [name, _lower_first(detail)] + tail
+		"convidar":
+			return "Oi, %s! Vou passar um tempinho n%s %s. Quer ir comigo?" % [name, Simulation._prep(str(cand.get("detail", ""))), cand.get("detail", "")] + tail
+		"pergunta":
+			var topics: Array = Array(npc.def.favorite_topics)
+			var topic: String = topics[rng.randi() % topics.size()] if not topics.is_empty() else "a ilha"
+			return "%s, posso perguntar uma coisa? Você gosta de %s?" % [name, topic] + tail
+	return greeting(npc, sim, rng)
+
+
+## Falas curtas para conversas entre moradores (quando a jogadora está perto).
+static func npc_chat_lines(a: NpcState, b: NpcState, kind: String, topic: String, rng: RandomNumberGenerator) -> Array:
+	match kind:
+		SocialRules.KIND_DISAGREEMENT:
+			return ["Sinceramente, não concordo com você.", "Hmm... a gente pensa bem diferente."]
+		SocialRules.KIND_RECONCILIATION:
+			return ["Desculpa por aquele dia, tá?", "Tudo bem. Já passou."]
+		SocialRules.KIND_SHARED:
+			return ["Que tarde boa!" + _pick(_voice(a)["tail"], rng), "Vamos repetir isso mais vezes!" + _pick(_voice(b)["tail"], rng)]
+	return ["E aí, o que acha de %s?" % topic, "Ah, eu adoro falar disso!" + _pick(_voice(b)["tail"], rng)]

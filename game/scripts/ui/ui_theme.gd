@@ -50,6 +50,13 @@ const KIND_COLORS := {
 	"community_event": Color("b49be0"),
 	"important_conversation": Color("8fc7b8"),
 	"relationship_change": Color("f0a35c"),
+	"new_friendship": Color("e58fb0"),
+	"trust_change": Color("8fc7b8"),
+	"goal_started": Color("f6c25b"),
+	"goal_milestone": Color("e3a93b"),
+	"goal_completed": Color("d98f1f"),
+	"promise": Color("7f9be6"),
+	"invitation": Color("6dbe7a"),
 }
 const KIND_LABELS := {
 	"friendly_chat": "Conversa",
@@ -60,6 +67,13 @@ const KIND_LABELS := {
 	"community_event": "Comunidade",
 	"important_conversation": "Conversa",
 	"relationship_change": "Amizade",
+	"new_friendship": "Nova amizade",
+	"trust_change": "Confiança",
+	"goal_started": "Objetivo",
+	"goal_milestone": "Objetivo",
+	"goal_completed": "Objetivo",
+	"promise": "Promessa",
+	"invitation": "Convite",
 }
 
 static var _theme: Theme

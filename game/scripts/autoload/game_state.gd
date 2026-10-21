@@ -3,7 +3,7 @@ extends Node
 ## e conecta a simulação ao relógio e ao barramento de eventos.
 
 const SCHEMA_VERSION := 1
-const GAME_VERSION := "0.2.0"
+const GAME_VERSION := "0.3.0"
 const DEFAULT_SLOT := "slot1"
 const PLAYER_SPAWN := Vector3(2.0, 0.0, 15.5)
 
@@ -105,6 +105,8 @@ func _on_day_started(day: int) -> void:
 			r["available"] = true
 			if r["kind"] == "shell":
 				r["item_id"] = "estrela_do_mar" if rng.randf() < 0.12 else "concha"
+	sim.set_time(day, GameClock.minute)
+	sim.on_new_day()
 	EventBus.toast_requested.emit("Um novo dia começou na ilha! (Dia %d)" % day)
 
 
@@ -114,6 +116,8 @@ func _on_minute_ticked(day: int, minute: float, elapsed: int) -> void:
 	sim.set_time(day, minute)
 	sim.tick(float(elapsed))
 	sim.update_interactions()
+	for npc_id in sim.expire_invitations():
+		EventBus.npc_reaction.emit(npc_id, "invite_missed")
 
 
 func build_snapshot() -> Dictionary:
