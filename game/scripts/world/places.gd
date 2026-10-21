@@ -1,155 +1,150 @@
 class_name Places
 extends RefCounted
-## Mapa lógico da ilha (versão 0.2): vila com bairros, centro comercial, lago,
-## bosque, pomar, mirante, praia e área de lazer. Usado pelo construtor da ilha
-## e pela IA. Os IDs de casas e pontos de interesse são persistentes e nunca
-## mudam entre versões; apenas as posições foram redesenhadas.
-
-const ISLAND_RADIUS := 42.0      # borda da grama
-const BEACH_RADIUS := 49.0       # borda da areia
-const WALK_RADIUS := 47.0        # limite caminhável
-
-## Casas: posição (x, z) e direção da porta (`face`). Como nos jogos de vila
-## aconchegantes, as fachadas ficam voltadas para a câmera (+Z).
-const HOUSES := {
-	"casa_jogadora": {"pos": Vector2(13, 26), "label": "Sua casa", "face": Vector2(0, 1)},
-	"casa_lila": {"pos": Vector2(-26, 14), "label": "Casa da Lila", "face": Vector2(0, 1)},
-	"casa_tobias": {"pos": Vector2(16, -9), "label": "Casa do Tobias", "face": Vector2(0, 1)},
-	"casa_otavio": {"pos": Vector2(-11, -27), "label": "Casa do Otávio", "face": Vector2(0, 1)},
-	"casa_pipa": {"pos": Vector2(4, -20), "label": "Casa da Pipa", "face": Vector2(0, 1)},
-	"casa_marina": {"pos": Vector2(31, -7), "label": "Casa da Marina", "face": Vector2(0, 1)},
-	"casa_bento": {"pos": Vector2(31, 8), "label": "Casa do Bento", "face": Vector2(0, 1)},
-	"casa_ravena": {"pos": Vector2(-28, -14), "label": "Casa da Ravena", "face": Vector2(0, 1)},
-	"casa_celeste": {"pos": Vector2(-15, 28), "label": "Casa da Dona Celeste", "face": Vector2(0, 1)},
-}
+## Mapa lógico do Daybloom Residence (0.4): lugares nomeados com andar,
+## posição local, raio e rótulo. Usado pela simulação, pela IA e pelo
+## construtor dos andares. IDs são persistentes.
 
 const POIS := {
-	"praca": {"pos": Vector2(0, 0), "radius": 6.0, "label": "praça central"},
-	"jardim": {"pos": Vector2(-16, 11), "radius": 4.0, "label": "jardim comunitário"},
-	"lago": {"pos": Vector2(21, 18), "radius": 5.5, "label": "lago"},
-	"doca": {"pos": Vector2(14.6, 18.4), "radius": 1.5, "label": "píer do lago"},
-	"quiosque": {"pos": Vector2(7.5, -6.0), "radius": 2.0, "label": "quiosque de pães"},
-	"mural": {"pos": Vector2(-5.5, -6.5), "radius": 1.5, "label": "mural de recados"},
-	"estante": {"pos": Vector2(-7.0, 5.5), "radius": 1.5, "label": "estante comunitária"},
-	"coreto": {"pos": Vector2(11, 8), "radius": 2.5, "label": "coreto"},
-	"banco_praca": {"pos": Vector2(4.2, 4.6), "radius": 1.2, "label": "banco da praça"},
-	"mirante": {"pos": Vector2(-21, -31), "radius": 3.0, "label": "mirante"},
-	"pomar": {"pos": Vector2(-34, 3), "radius": 4.0, "label": "pomar"},
-	"bosque": {"pos": Vector2(24, -27), "radius": 4.0, "label": "bosque"},
-	"parque": {"pos": Vector2(-3, 21), "radius": 3.5, "label": "parque"},
-	"praia_sul": {"pos": Vector2(9, 44), "radius": 3.0, "label": "praia do sul"},
-	"praia_leste": {"pos": Vector2(44, -5), "radius": 3.0, "label": "praia do leste"},
-	"praia_norte": {"pos": Vector2(-4, -45), "radius": 3.0, "label": "praia do norte"},
-	"fogueira": {"pos": Vector2(-14, 42), "radius": 2.5, "label": "fogueira da praia"},
+	# Térreo
+	"hall": {"floor": "terreo", "pos": Vector2(-1.5, 6.4), "radius": 2.2, "label": "hall de entrada"},
+	"convivencia": {"floor": "terreo", "pos": Vector2(0.0, -1.6), "radius": 2.2, "label": "sala de convivência"},
+	"mercadinho": {"floor": "terreo", "pos": Vector2(7.4, -3.2), "radius": 1.8, "label": "mercadinho"},
+	"coworking": {"floor": "terreo", "pos": Vector2(-7.5, -4.95), "radius": 1.6, "label": "espaço de trabalho"},
+	"patio": {"floor": "terreo", "pos": Vector2(2.5, 12.6), "radius": 3.0, "label": "pátio"},
+	"horta": {"floor": "terreo", "pos": Vector2(-9.0, 15.3), "radius": 1.6, "label": "horta comunitária"},
+	# Subsolo
+	"academia": {"floor": "subsolo", "pos": Vector2(-6.0, -4.0), "radius": 2.5, "label": "academia"},
+	"lavanderia": {"floor": "subsolo", "pos": Vector2(5.5, -5.0), "radius": 2.0, "label": "lavanderia"},
+	"deposito": {"floor": "subsolo", "pos": Vector2(6.5, 2.4), "radius": 1.6, "label": "depósito"},
+	# Cobertura
+	"piscina": {"floor": "cobertura", "pos": Vector2(4.5, -1.0), "radius": 2.0, "label": "piscina"},
+	"churrasqueira": {"floor": "cobertura", "pos": Vector2(-8.6, -6.9), "radius": 1.3, "label": "churrasqueira"},
+	"mesas_cobertura": {"floor": "cobertura", "pos": Vector2(-6.8, -2.9), "radius": 2.2, "label": "mesas da cobertura"},
+	"jardim_cobertura": {"floor": "cobertura", "pos": Vector2(9.6, -5.5), "radius": 1.6, "label": "jardim da cobertura"},
+	"observatorio": {"floor": "cobertura", "pos": Vector2(8.8, 3.4), "radius": 1.4, "label": "observatório da cobertura"},
+	"descanso_cobertura": {"floor": "cobertura", "pos": Vector2(0.5, 1.2), "radius": 2.0, "label": "área de descanso da cobertura"},
 }
 
-## Hobbies: onde são praticados e como aparecem na tela/diário.
+## Apartamentos: "apto_<morador>" (ponto central da sala).
+const APT_CENTER := Vector2(0.5, -0.8)
+
+## Hobbies: onde são praticados. `aff` = ação em um objeto do próprio
+## apartamento (quando `place` é "home") ou do lugar indicado.
 const HOBBY_SPOTS := {
-	"jardinagem": {"place": "jardim", "text": "cuidando do jardim", "topic": "flores e mudas"},
-	"musica": {"place": "coreto", "text": "tocando violão", "topic": "música"},
-	"leitura": {"place": "estante", "text": "lendo um livro", "topic": "livros"},
-	"pintura": {"place": "mirante", "text": "pintando a paisagem", "topic": "pintura"},
-	"colecionar_conchas": {"place": "praia_leste", "text": "procurando conchas", "topic": "conchas"},
-	"observar_estrelas": {"place": "mirante", "text": "observando as estrelas", "topic": "as estrelas"},
-	"culinaria": {"place": "quiosque", "text": "testando receitas", "topic": "receitas"},
-	"contemplar_lago": {"place": "doca", "text": "contemplando o lago", "topic": "o lago"},
-	"costura": {"place": "home", "text": "costurando na varanda", "topic": "costura"},
-	"conversar": {"place": "praca", "text": "puxando conversa", "topic": "as novidades da ilha"},
-	"corrida": {"place": "praia_sul", "text": "correndo na praia", "topic": "exercícios"},
-	"passear": {"place": "random", "text": "passeando", "topic": "os cantinhos da ilha"},
-	"colher_frutas": {"place": "pomar", "text": "colhendo frutas", "topic": "frutas"},
+	"jardinagem": {"place": "horta", "aff": "cuidar_horta", "text": "cuidando da horta", "topic": "flores e mudas"},
+	"musica": {"place": "home", "aff": "tocar", "text": "tocando música", "topic": "música", "loud": true},
+	"leitura": {"place": "home", "aff": "ler", "text": "lendo um livro", "topic": "livros"},
+	"pintura": {"place": "home", "aff": "pintar", "text": "pintando no ateliê", "topic": "pintura"},
+	"natacao": {"place": "piscina", "aff": "nadar", "text": "nadando na piscina", "topic": "natação"},
+	"observar_estrelas": {"place": "observatorio", "aff": "observar", "text": "observando as estrelas", "topic": "as estrelas"},
+	"culinaria": {"place": "home", "aff": "cozinhar", "text": "testando receitas", "topic": "receitas"},
+	"contemplar": {"place": "descanso_cobertura", "aff": "sentar", "text": "admirando a vista da cobertura", "topic": "a vista da cidade"},
+	"costura": {"place": "home", "aff": "costurar", "text": "costurando", "topic": "costura"},
+	"conversar": {"place": "convivencia", "aff": "sentar", "text": "puxando conversa", "topic": "as novidades do prédio"},
+	"corrida": {"place": "academia", "aff": "exercitar", "text": "correndo na esteira", "topic": "exercícios"},
+	"passear": {"place": "patio", "aff": "", "text": "passeando pelo pátio", "topic": "os cantinhos do prédio"},
+	"horta": {"place": "horta", "aff": "cuidar_horta", "text": "colhendo verduras na horta", "topic": "verduras"},
+	"cartas": {"place": "home", "aff": "organizar_cartas", "text": "organizando cartas", "topic": "cartas e recados"},
 }
 
-## Locais que um morador curioso pode explorar.
-const EXPLORE_SPOTS := ["mirante", "pomar", "bosque", "praia_sul", "praia_leste", "praia_norte", "fogueira", "lago", "jardim", "coreto", "parque"]
+## Lugares que um morador curioso pode explorar.
+const EXPLORE_SPOTS := ["patio", "horta", "convivencia", "piscina", "jardim_cobertura", "descanso_cobertura", "observatorio", "academia", "hall"]
 
-## Atividades que podem ser feitas em dupla em cada local.
+## Atividades que podem ser feitas em dupla em cada lugar.
 const SHARED_ACTIVITIES := {
-	"jardim": "regaram os canteiros do jardim comunitário",
-	"coreto": "tocaram uma música juntos no coreto",
-	"doca": "ficaram observando os peixinhos do lago",
-	"lago": "ficaram observando os peixinhos do lago",
-	"mirante": "admiraram a vista do mirante",
-	"praia_sul": "fizeram um castelo de areia na praia",
-	"praia_leste": "procuraram conchas juntos na praia",
-	"praia_norte": "caminharam juntos pela praia",
-	"pomar": "colheram frutas juntos no pomar",
-	"quiosque": "dividiram um pãozinho no quiosque",
-	"praca": "jogaram uma partida de damas na praça",
-	"estante": "trocaram indicações de livros na estante",
-	"bosque": "exploraram o bosque juntos",
-	"fogueira": "conversaram ao redor da fogueira",
-	"banco_praca": "dividiram o banco da praça vendo o movimento",
-	"parque": "fizeram um piquenique no parque",
+	"horta": "cuidaram juntos da horta comunitária",
+	"convivencia": "tomaram um café juntos na convivência",
+	"patio": "passearam juntos pelo pátio",
+	"piscina": "nadaram juntos na piscina",
+	"mesas_cobertura": "dividiram um lanche nas mesas da cobertura",
+	"descanso_cobertura": "admiraram a vista da cobertura",
+	"observatorio": "observaram as estrelas na cobertura",
+	"jardim_cobertura": "regaram o jardim da cobertura",
+	"academia": "treinaram juntos na academia",
+	"coworking": "trabalharam lado a lado no espaço de trabalho",
+	"mercadinho": "fizeram compras juntos no mercadinho",
+	"hall": "conversaram no hall de entrada",
 }
 
 
-## Posição 3D apoiada no terreno.
-static func pos3(p: Vector2) -> Vector3:
-	return Vector3(p.x, IslandTerrain.height(p.x, p.y), p.y)
+static func apt_id(owner: String) -> String:
+	return "apto_" + owner
 
 
-static func house_pos(house_id: String) -> Vector3:
-	return pos3(HOUSES.get(house_id, {"pos": Vector2.ZERO})["pos"])
+static func is_apartment(place: String) -> bool:
+	return place.begins_with("apto_")
 
 
-## Direção (no plano) para onde a porta da casa está voltada.
-static func house_facing(house_id: String) -> Vector2:
-	var h: Dictionary = HOUSES.get(house_id, {"pos": Vector2.ZERO})
-	# `face` é a direção da porta (a frente das casas fica voltada para a câmera)
-	var d: Vector2 = h.get("face", -Vector2(h["pos"]))
-	if d.length() < 0.01:
-		d = Vector2(0, 1)
-	return d.normalized()
+static func apt_owner(place: String) -> String:
+	return place.trim_prefix("apto_") if is_apartment(place) else ""
 
 
-static func house_rotation(house_id: String) -> float:
-	var f := house_facing(house_id)
-	return atan2(f.x, f.y)
+static func floor_of(place: String) -> String:
+	if POIS.has(place):
+		return POIS[place]["floor"]
+	if is_apartment(place):
+		return BuildingLayout.floor_of_owner(apt_owner(place))
+	if place.begins_with("corredor_"):
+		return place.trim_prefix("corredor_")
+	return ""
 
 
-## Ponto em frente à porta.
-static func house_door(house_id: String) -> Vector3:
-	var c: Vector2 = HOUSES.get(house_id, {"pos": Vector2.ZERO})["pos"]
-	return pos3(c + house_facing(house_id) * 3.4)
+## Posição local (no andar do lugar).
+static func poi_pos(place: String) -> Vector3:
+	if POIS.has(place):
+		var p: Vector2 = POIS[place]["pos"]
+		return Vector3(p.x, 0.0, p.y)
+	if is_apartment(place):
+		return Vector3(APT_CENTER.x, 0.0, APT_CENTER.y)
+	if place.begins_with("corredor_"):
+		return Vector3(2.5, 0.0, 6.8)
+	return Vector3.ZERO
 
 
-static func house_porch(house_id: String) -> Vector3:
-	var c: Vector2 = HOUSES.get(house_id, {"pos": Vector2.ZERO})["pos"]
-	var f := house_facing(house_id)
-	var side := Vector2(f.y, -f.x)
-	return pos3(c + f * 3.4 + side * 1.6)
+static func poi_radius(place: String) -> float:
+	if POIS.has(place):
+		return float(POIS[place]["radius"])
+	return 1.5
 
 
-static func poi_pos(poi_id: String) -> Vector3:
-	return pos3(POIS.get(poi_id, {"pos": Vector2.ZERO})["pos"])
+static func poi_label(place: String) -> String:
+	if POIS.has(place):
+		return POIS[place]["label"]
+	if is_apartment(place):
+		var owner := apt_owner(place)
+		if owner == "player":
+			return "apartamento da jogadora"
+		var t: Dictionary = BuildingLayout.THEMES.get(owner, {})
+		var l := str(t.get("label", "Apartamento"))
+		return l.substr(0, 1).to_lower() + l.substr(1)
+	if place.begins_with("corredor_"):
+		return "corredor do " + BuildingLayout.floor_label(place.trim_prefix("corredor_"))
+	return place
 
 
-static func poi_label(poi_id: String) -> String:
-	if POIS.has(poi_id):
-		return POIS[poi_id]["label"]
-	if HOUSES.has(poi_id):
-		return HOUSES[poi_id]["label"]
-	return poi_id
-
-
-static func poi_radius(poi_id: String) -> float:
-	return POIS.get(poi_id, {}).get("radius", 1.5)
-
-
-## Lugar nomeado mais próximo de uma posição (para descrever eventos).
-static func nearest_place(p: Vector3) -> String:
-	var best := "praca"
+## Lugar nomeado mais próximo (no mesmo andar).
+static func nearest_place(p: Vector3, floor_id: String) -> String:
+	if BuildingLayout.in_apartment(floor_id, p):
+		return apt_id(BuildingLayout.owner_of(floor_id))
+	if BuildingLayout.is_apartment_floor(floor_id):
+		return "corredor_" + floor_id
+	var best := ""
 	var best_d := INF
-	var flat := Vector2(p.x, p.z)
 	for id in POIS:
-		var d: float = flat.distance_to(POIS[id]["pos"]) - float(POIS[id]["radius"])
+		if POIS[id]["floor"] != floor_id:
+			continue
+		var d: float = Vector2(p.x, p.z).distance_to(POIS[id]["pos"]) - float(POIS[id]["radius"])
 		if d < best_d:
 			best_d = d
 			best = id
-	for id in HOUSES:
-		var d2: float = flat.distance_to(HOUSES[id]["pos"]) - 4.0
-		if d2 < best_d:
-			best_d = d2
-			best = id
-	return best
+	return best if best != "" else "corredor_" + floor_id
+
+
+## Descrição curta de onde alguém está ("no mercadinho", "na sala do
+## apartamento da Lila").
+static func describe_location(floor_id: String, p: Vector3) -> String:
+	var place := nearest_place(p, floor_id)
+	if is_apartment(place):
+		var room := BuildingLayout.room_at(floor_id, p)
+		return "%s (%s)" % [poi_label(place), BuildingLayout.room_label(floor_id, room)]
+	return "%s, %s" % [poi_label(place), BuildingLayout.floor_label(floor_id).to_lower()]

@@ -4,7 +4,7 @@ extends RefCounted
 
 signal changed()
 
-const MAX_SLOTS := 20
+const MAX_SLOTS := 30
 const MAX_STACK := 99
 
 var _order: Array = []
@@ -21,6 +21,15 @@ func has(item_id: String, amount: int = 1) -> bool:
 
 func slots_used() -> int:
 	return _order.size()
+
+
+## Quantas unidades deste item ainda cabem.
+func room_for(item_id: String) -> int:
+	if not ItemDB.exists(item_id):
+		return 0
+	if _counts.has(item_id):
+		return MAX_STACK - int(_counts[item_id])
+	return MAX_STACK if _order.size() < MAX_SLOTS else 0
 
 
 ## Adiciona itens e retorna quantos couberam de fato.

@@ -1,47 +1,59 @@
 class_name NpcState
 extends RefCounted
-## Estado dinâmico de um morador (necessidades, emoção, estado, posição...).
-## A definição estática (personalidade base, gostos, rotina) vem de NpcDefinition.
+## Estado dinâmico de um morador (necessidades, humor, estado, andar e
+## posição...). A definição estática (personalidade base, gostos, rotina) vem
+## de NpcDefinition.
 
 const STATES := ["IDLE", "WALKING", "RESTING", "WORKING", "SOCIALIZING", "EXPLORING", "LEISURE"]
-const NEED_KEYS := ["energia", "social", "diversao", "conforto"]
+const NEED_KEYS := NeedsComponent.KEYS
 const STATE_LABELS := {"IDLE": "parado", "WALKING": "andando", "RESTING": "descansando", "WORKING": "trabalhando", "SOCIALIZING": "socializando", "EXPLORING": "explorando", "LEISURE": "lazer"}
 
 var def: NpcDefinition
 var id: String = ""
 var traits: Dictionary = {}
-var needs: Dictionary = {"energia": 85.0, "social": 60.0, "diversao": 60.0, "conforto": 70.0}
-var mood: String = "tranquilo"
+var needs: Dictionary = {"fome": 75.0, "energia": 85.0, "higiene": 80.0, "banheiro": 80.0, "diversao": 60.0, "social": 60.0, "conforto": 70.0}
+## Humor (0.4): estado do momento ("feliz", "cansado"...) e palavra exibida.
+var mood_state: String = "neutro"
+var mood: String = "neutra"
 var valence: float = 0.2
-## Modificador emocional temporário causado por acontecimentos (decai com o tempo).
+## Modificador emocional genérico (acontecimentos), decai com o tempo.
 var mood_modifier: float = 0.0
+## Modificadores com causa e duração (MoodSystem).
+var mood_mods: Array = []
 var state: String = "IDLE"
 var activity: String = "parado"
+## Andar atual e posição local nesse andar.
+var floor_id: String = ""
 var position: Vector3 = Vector3.ZERO
 var rotation_y: float = 0.0
+## No elevador/escadas entre andares (transitório).
+var in_transit: bool = false
 var cooldowns: Dictionary = {}
 var goal_progress: float = 0.0
-var inside_home: bool = false
-## Objetivo em etapas (0.3): {step, counts, started_day, completed_day, plan_note}
+## Comida em casa (refeições). Quando acaba, o morador vai ao mercadinho.
+var pantry: int = 3
+## Objetivo em etapas: {step, counts, started_day, completed_day, plan_note, legacy}
 var goal_state: Dictionary = {"step": 0, "counts": {}, "started_day": 0, "completed_day": 0, "plan_note": ""}
-## Preferências aprendidas com experiências marcantes (no máximo 3).
 var learned_likes: Array = []
-## Quantas vezes recebeu cada item da jogadora.
 var gift_counts: Dictionary = {}
-## Acontecimentos que já contou para a jogadora (evita repetir novidades).
 var told_player: Array = []
-## Pedidos feitos à jogadora: item_id -> minuto absoluto em que expira.
 var requests: Dictionary = {}
+## Minuto absoluto mais recente visto pela simulação (para o humor).
+var clock_now: float = 0.0
 
 # Estado transitório (não persistido).
 var pending_initiatives: Dictionary = {}
 var invitation: Dictionary = {}
 var drift_today: Dictionary = {}
-
-# Estado de execução (não persistido; recriado pela IA após carregar).
 var current_action: Dictionary = {}
 var partner_id: String = ""
 var action_log: Array = []
+## Ação doméstica em andamento (taxas de necessidades e conforto do assento).
+var action_rates: Dictionary = {}
+var action_activity: String = ""
+var comfort_target: float = 50.0
+## Papel em uma situação social ou evento (ex.: anfitrião de visita).
+var role: Dictionary = {}
 
 
 func _init(definition: NpcDefinition = null) -> void:
@@ -49,9 +61,22 @@ func _init(definition: NpcDefinition = null) -> void:
 		def = definition
 		id = definition.id
 		traits = definition.traits()
+		floor_id = home_floor()
 
 
-## Preferência por um item, incluindo gostos aprendidos.
+func home_floor() -> String:
+	return BuildingLayout.floor_of_owner(id)
+
+
+func home_place() -> String:
+	return Places.apt_id(id)
+
+
+## Está dentro do próprio apartamento?
+func is_home() -> bool:
+	return floor_id == home_floor() and not in_transit and BuildingLayout.in_apartment(floor_id, position)
+
+
 func preference_for(item_id: String) -> int:
 	if learned_likes.has(item_id):
 		return 1
@@ -72,7 +97,7 @@ func is_busy_with_partner() -> bool:
 
 ## Disponível para uma interação social (com outro morador ou com a jogadora).
 func is_available() -> bool:
-	return not is_sleeping() and not inside_home and partner_id == ""
+	return not is_sleeping() and partner_id == "" and not in_transit and role.get("busy", false) == false
 
 
 func set_state(new_state: String, new_activity: String) -> bool:
@@ -90,6 +115,10 @@ func need(key: String) -> float:
 
 func add_need(key: String, amount: float) -> void:
 	needs[key] = clampf(need(key) + amount, 0.0, 100.0)
+
+
+func needs_component() -> NeedsComponent:
+	return NeedsComponent.new(needs)
 
 
 func trait_value(key: String) -> float:
@@ -110,30 +139,29 @@ func prune_cooldowns(now_abs: float) -> void:
 			cooldowns.erase(key)
 
 
+func add_mood(mod_id: String, cause: String, state_key: String, intensity: float, duration: float) -> void:
+	MoodSystem.add_modifier(mood_mods, mod_id, cause, state_key, intensity, duration, clock_now)
+
+
+## Recalcula o humor a partir das necessidades, modificadores e acontecimentos.
 func update_emotion() -> void:
-	var avg := 0.0
-	for key in NEED_KEYS:
-		avg += need(key)
-	avg /= NEED_KEYS.size()
-	valence = clampf((avg - 50.0) / 50.0 * 0.7 + mood_modifier + (trait_value("gentileza") - 0.5) * 0.1, -1.0, 1.0)
-	if is_sleeping():
-		mood = "dormindo"
-	elif need("energia") < 20.0:
-		mood = "cansad" + def.article()
-	elif need("social") < 18.0:
-		mood = "solitári" + def.article()
-	elif need("diversao") < 18.0:
-		mood = "entediad" + def.article()
-	elif valence > 0.6:
-		mood = "radiante"
-	elif valence > 0.25:
-		mood = "alegre"
-	elif valence > -0.1:
-		mood = "tranquil" + def.article()
-	elif valence > -0.45:
-		mood = "chatead" + def.article()
-	else:
-		mood = "triste"
+	MoodSystem.prune(mood_mods, clock_now)
+	var mods := mood_mods.duplicate()
+	if mood_modifier > 0.05:
+		mods.append({"id": "_mod", "cause": "bons momentos", "state": "feliz", "intensity": mood_modifier, "started": clock_now - 1.0, "until": clock_now + 9999.0})
+	elif mood_modifier < -0.05:
+		mods.append({"id": "_mod", "cause": "acontecimentos ruins", "state": "triste", "intensity": -mood_modifier, "started": clock_now - 1.0, "until": clock_now + 9999.0})
+	var ev := MoodSystem.evaluate(needs, mods, clock_now, traits, is_sleeping())
+	mood_state = str(ev["state"])
+	valence = clampf(float(ev["valence"]) + (trait_value("gentileza") - 0.5) * 0.1, -1.0, 1.0)
+	mood = "dormindo" if is_sleeping() else MoodSystem.word(mood_state, def.article() if def else "a")
+
+
+func mood_causes() -> Array:
+	var out := []
+	for m in MoodSystem.describe(mood_mods, clock_now):
+		out.append(m["cause"])
+	return out
 
 
 func to_dict(relationships: Dictionary, memories: Array) -> Dictionary:
@@ -144,12 +172,14 @@ func to_dict(relationships: Dictionary, memories: Array) -> Dictionary:
 		"species": def.species if def else "",
 		"personality": traits.duplicate(),
 		"needs": _rounded(needs),
-		"emotion": {"mood": mood, "valence": snappedf(valence, 0.001), "modifier": snappedf(mood_modifier, 0.001)},
+		"emotion": {"mood": mood, "valence": snappedf(valence, 0.001), "modifier": snappedf(mood_modifier, 0.001), "state": mood_state, "mods": MoodSystem.mods_to_array(mood_mods)},
 		"state": state,
 		"activity": activity,
+		"floor": floor_id,
 		"position": pos,
 		"rotation_y": snappedf(rotation_y, 0.001),
-		"inside_home": inside_home,
+		"inside_home": is_home(),
+		"pantry": pantry,
 		"personal_goal": {
 			"id": def.personal_goal_id if def else "",
 			"description": def.personal_goal if def else "",
@@ -159,6 +189,7 @@ func to_dict(relationships: Dictionary, memories: Array) -> Dictionary:
 			"started_day": int(goal_state.get("started_day", 0)),
 			"completed_day": int(goal_state.get("completed_day", 0)),
 			"plan_note": str(goal_state.get("plan_note", "")),
+			"legacy": (goal_state.get("legacy", {}) as Dictionary).duplicate(true),
 		},
 		"learned_likes": learned_likes.duplicate(),
 		"gift_counts": gift_counts.duplicate(),
@@ -170,7 +201,8 @@ func to_dict(relationships: Dictionary, memories: Array) -> Dictionary:
 	}
 
 
-func apply_dict(data: Dictionary) -> void:
+func apply_dict(data: Dictionary, now: float = 0.0) -> void:
+	clock_now = now
 	var saved_traits: Dictionary = data.get("personality", {})
 	for key in saved_traits:
 		traits[key] = clampf(float(saved_traits[key]), 0.0, 1.0)
@@ -179,30 +211,35 @@ func apply_dict(data: Dictionary) -> void:
 		if saved_needs.has(key):
 			needs[key] = clampf(float(saved_needs[key]), 0.0, 100.0)
 	var emotion: Dictionary = data.get("emotion", {})
-	mood = str(emotion.get("mood", mood))
 	valence = clampf(float(emotion.get("valence", valence)), -1.0, 1.0)
 	mood_modifier = clampf(float(emotion.get("modifier", 0.0)), -1.0, 1.0)
+	mood_mods = MoodSystem.mods_from_array(emotion.get("mods", []), now)
+	var ms := str(emotion.get("state", "neutro"))
+	mood_state = ms if ms in MoodSystem.STATES else "neutro"
 	var saved_state := str(data.get("state", "IDLE"))
 	state = saved_state if saved_state in STATES else "IDLE"
 	activity = str(data.get("activity", "parado"))
+	var f := str(data.get("floor", ""))
+	floor_id = f if BuildingLayout.has_floor(f) else home_floor()
 	var p: Dictionary = data.get("position", {})
-	position = Vector3(float(p.get("x", 0.0)), float(p.get("y", 0.0)), float(p.get("z", 0.0)))
+	position = BuildingLayout.clamp_to_floor(floor_id, Vector3(float(p.get("x", 0.0)), 0.0, float(p.get("z", 0.0))))
 	rotation_y = float(data.get("rotation_y", 0.0))
-	inside_home = bool(data.get("inside_home", false))
+	in_transit = false
+	pantry = clampi(int(data.get("pantry", 3)), 0, 10)
 	var goal: Dictionary = data.get("personal_goal", {})
-	goal_progress = clampf(float(goal.get("progress", 0.0)), 0.0, 1.0)
 	var n_steps := GoalLibrary.steps(def.personal_goal_id if def else "").size()
 	var counts := {}
 	var saved_counts: Dictionary = goal.get("counts", {})
 	for k in saved_counts:
 		counts[str(k)] = int(saved_counts[k])
+	goal_progress = clampf(float(goal.get("progress", 0.0)), 0.0, 1.0)
 	goal_state = {
-		# Saves antigos (sem etapas): deriva a etapa do progresso salvo.
 		"step": clampi(int(goal.get("step", int(goal_progress * n_steps))), 0, n_steps),
 		"counts": counts,
 		"started_day": int(goal.get("started_day", 0)),
 		"completed_day": int(goal.get("completed_day", 0)),
 		"plan_note": str(goal.get("plan_note", "")).substr(0, 160),
+		"legacy": (goal.get("legacy", {}) as Dictionary).duplicate(true) if goal.get("legacy", {}) is Dictionary else {},
 	}
 	learned_likes = []
 	for it in data.get("learned_likes", []):
@@ -228,6 +265,9 @@ func apply_dict(data: Dictionary) -> void:
 		cooldowns[str(key)] = float(saved_cd[key])
 	current_action = {}
 	partner_id = ""
+	role = {}
+	action_rates = {}
+	update_emotion()
 
 
 static func _rounded(d: Dictionary) -> Dictionary:

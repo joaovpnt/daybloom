@@ -1,87 +1,94 @@
 class_name GoalLibrary
 extends RefCounted
-## Objetivos pessoais em etapas (0.3). Cada etapa só avança com acontecimentos
-## reais do simulador — nunca porque o modelo de linguagem disse algo.
+## Objetivos pessoais em etapas (0.4: adaptados ao Daybloom Residence). Cada
+## etapa só avança com acontecimentos reais do simulador — nunca porque o
+## modelo de linguagem disse algo ou porque o tempo passou.
 ##
 ## Tipos de etapa (conjunto fechado):
-##  - trabalho:                 concluir o trabalho do dia (no local de trabalho)
+##  - trabalho:                 concluir um turno do trabalho do morador
 ##  - hobby:                    concluir uma atividade de lazer com o hobby indicado
 ##  - receber_item:             receber da jogadora um item com a tag indicada
 ##  - atividade_compartilhada:  fazer uma atividade em dupla (no lugar indicado, se houver)
-##  - conversar_jogadora:       conversar com a jogadora (contar, pedir opinião)
+##  - conversar_jogadora:       conversar com a jogadora
+##  - visita:                   receber ou fazer uma visita de apartamento até o fim
+##  - evento:                   participar de um evento comunitário que aconteceu de verdade
+##  - decorar:                  ir até o lugar e executar a ação final (muda o mundo)
 
-const STEP_TYPES := ["trabalho", "hobby", "receber_item", "atividade_compartilhada", "conversar_jogadora"]
+const STEP_TYPES := ["trabalho", "hobby", "receber_item", "atividade_compartilhada", "conversar_jogadora", "visita", "evento", "decorar"]
+
+## Objetivos da 0.3 (ilha), guardados como histórico nos saves migrados.
+const LEGACY_IDS := ["jardim_florido", "torta_perfeita", "colecao_conchas", "mapa_estelar", "cartas_entregues", "cancoes", "paisagem_perfeita", "colcha"]
 
 const GOALS := {
-	"jardim_florido": {
-		"motivation": "quer que o jardim comunitário seja o lugar mais alegre da ilha",
+	"hall_florido": {
+		"motivation": "quer que todo mundo seja recebido por flores ao entrar no prédio",
 		"steps": [
-			{"id": "canteiros", "label": "preparar os canteiros do jardim", "type": "trabalho", "count": 2},
-			{"id": "flores", "label": "juntar flores para plantar", "type": "receber_item", "tag": "flor", "count": 3},
-			{"id": "regar_junto", "label": "regar o jardim junto com alguém", "type": "atividade_compartilhada", "place": "jardim", "count": 1},
-			{"id": "plantar", "label": "plantar as flores novas", "type": "hobby", "hobby": "jardinagem", "count": 2},
+			{"id": "horta", "label": "cuidar das mudas na horta", "type": "hobby", "hobby": "jardinagem", "count": 2},
+			{"id": "flores", "label": "juntar flores e vasos para o hall", "type": "receber_item", "tag": "flor", "count": 2},
+			{"id": "opiniao", "label": "pedir a opinião de alguém sobre o arranjo", "type": "conversar_jogadora", "count": 1},
+			{"id": "decorar", "label": "decorar o hall com plantas", "type": "decorar", "place": "hall", "activity": "decorando o hall com plantas", "effect": {"decor": "hall_plantas"}, "count": 1},
 		],
 	},
-	"torta_perfeita": {
-		"motivation": "quer fazer uma torta que deixe todo mundo feliz",
+	"receita_mercadinho": {
+		"motivation": "quer criar uma receita tão gostosa que mereça estar no mercadinho",
 		"steps": [
-			{"id": "massa", "label": "testar receitas de massa", "type": "trabalho", "count": 2},
-			{"id": "pessegos", "label": "conseguir pêssegos maduros", "type": "receber_item", "tag": "pessego", "count": 2},
-			{"id": "provar", "label": "dar um pedaço para alguém provar", "type": "atividade_compartilhada", "place": "quiosque", "count": 1},
-			{"id": "assar", "label": "assar a torta final", "type": "hobby", "hobby": "culinaria", "count": 1},
+			{"id": "testes", "label": "testar receitas no forno", "type": "trabalho", "count": 2},
+			{"id": "ingredientes", "label": "conseguir ingredientes especiais", "type": "receber_item", "tag": "ingrediente", "count": 1},
+			{"id": "provar", "label": "dar a receita para alguém provar", "type": "visita", "count": 1},
+			{"id": "vender", "label": "levar a receita para o mercadinho", "type": "decorar", "place": "mercadinho", "activity": "entregando o pão de mel no mercadinho", "effect": {"unlock": "pao_de_mel"}, "count": 1},
 		],
 	},
-	"colecao_conchas": {
-		"motivation": "quer provar que conhece cada cantinho da praia",
+	"aulas_piscina": {
+		"motivation": "quer que o prédio inteiro aproveite a piscina com segurança",
 		"steps": [
-			{"id": "procurar", "label": "procurar conchas na praia", "type": "hobby", "hobby": "colecionar_conchas", "count": 2},
-			{"id": "conchas", "label": "conseguir conchas rosadas", "type": "receber_item", "tag": "concha", "count": 2},
-			{"id": "rara", "label": "encontrar uma peça rara", "type": "receber_item", "tag": "raro", "count": 1},
-			{"id": "mostrar", "label": "mostrar a coleção para alguém", "type": "atividade_compartilhada", "count": 1},
+			{"id": "treino", "label": "treinar na piscina", "type": "hobby", "hobby": "natacao", "count": 2},
+			{"id": "convidar", "label": "contar a ideia das aulas para alguém", "type": "conversar_jogadora", "count": 1},
+			{"id": "nadar_junto", "label": "nadar junto com alguém", "type": "atividade_compartilhada", "place": "piscina", "count": 1},
+			{"id": "organizar", "label": "organizar o cantinho das aulas na piscina", "type": "decorar", "place": "piscina", "activity": "organizando as aulas de natação", "effect": {"decor": "piscina_aula"}, "count": 1},
 		],
 	},
-	"mapa_estelar": {
-		"motivation": "quer entender o céu da ilha e registrar tudo",
+	"observatorio_cobertura": {
+		"motivation": "quer transformar a cobertura em um observatório para todos",
 		"steps": [
-			{"id": "observar", "label": "observar as estrelas do mirante", "type": "hobby", "hobby": "observar_estrelas", "count": 3},
-			{"id": "estudar", "label": "estudar os livros da estante", "type": "trabalho", "count": 2},
-			{"id": "contar", "label": "contar as descobertas para alguém", "type": "conversar_jogadora", "count": 1},
+			{"id": "observar", "label": "observar as estrelas da cobertura", "type": "hobby", "hobby": "observar_estrelas", "count": 3},
+			{"id": "lampada", "label": "conseguir uma lâmpada para a luz de leitura", "type": "receber_item", "tag": "lampada", "count": 1},
+			{"id": "observar_junto", "label": "observar o céu junto com alguém", "type": "atividade_compartilhada", "place": "observatorio", "count": 1},
+			{"id": "montar", "label": "montar o observatório da cobertura", "type": "decorar", "place": "observatorio", "activity": "montando o observatório", "effect": {"decor": "observatorio"}, "count": 1},
 		],
 	},
-	"cartas_entregues": {
-		"motivation": "quer que ninguém na ilha fique sem notícias",
+	"correio_condominio": {
+		"motivation": "quer que nenhuma carta do prédio se perca",
 		"steps": [
-			{"id": "rotas", "label": "fazer as rotas de entrega", "type": "trabalho", "count": 3},
-			{"id": "ouvir", "label": "saber as novidades da nova moradora", "type": "conversar_jogadora", "count": 1},
-			{"id": "entregar_junto", "label": "entregar recados junto com alguém", "type": "atividade_compartilhada", "count": 1},
-			{"id": "ultima_rota", "label": "terminar a última rota", "type": "trabalho", "count": 1},
+			{"id": "rotas", "label": "fazer as rotas de entrega pelos andares", "type": "trabalho", "count": 3},
+			{"id": "ouvir", "label": "ouvir as novidades da nova vizinha", "type": "conversar_jogadora", "count": 1},
+			{"id": "organizar", "label": "organizar o correio do hall", "type": "decorar", "place": "hall", "activity": "organizando o correio do hall", "effect": {"decor": "correio_organizado"}, "count": 1},
 		],
 	},
-	"cancoes": {
-		"motivation": "quer que cada morador tenha uma música que combine com ele",
+	"show_evento": {
+		"motivation": "quer tocar para o prédio inteiro em uma festa",
 		"steps": [
-			{"id": "compor", "label": "compor melodias no coreto", "type": "hobby", "hobby": "musica", "count": 2},
-			{"id": "tocar_junto", "label": "tocar uma música com alguém no coreto", "type": "atividade_compartilhada", "place": "coreto", "count": 1},
+			{"id": "compor", "label": "compor músicas novas", "type": "hobby", "hobby": "musica", "count": 2},
+			{"id": "tocar_junto", "label": "ensaiar junto com alguém", "type": "atividade_compartilhada", "count": 1},
 			{"id": "percussao", "label": "conseguir uma pedra lisa para a percussão", "type": "receber_item", "tag": "pedra", "count": 1},
-			{"id": "ensaiar", "label": "ensaiar a canção final", "type": "hobby", "hobby": "musica", "count": 1},
+			{"id": "show", "label": "tocar em um evento comunitário", "type": "evento", "count": 1},
 		],
 	},
-	"paisagem_perfeita": {
-		"motivation": "quer capturar a luz exata do entardecer da ilha",
+	"colecao_quadros": {
+		"motivation": "quer pintar uma coleção que mostre a alma do prédio",
 		"steps": [
-			{"id": "esbocos", "label": "fazer esboços no mirante", "type": "hobby", "hobby": "pintura", "count": 2},
-			{"id": "cor", "label": "conseguir uma flor vermelha como referência de cor", "type": "receber_item", "tag": "flor_vermelha", "count": 1},
+			{"id": "pintar", "label": "pintar os quadros da coleção", "type": "hobby", "hobby": "pintura", "count": 3},
+			{"id": "tintas", "label": "conseguir tintas novas", "type": "receber_item", "tag": "tinta", "count": 1},
 			{"id": "opiniao", "label": "ouvir uma opinião sincera", "type": "conversar_jogadora", "count": 1},
-			{"id": "pintar", "label": "pintar a versão final", "type": "trabalho", "count": 2},
+			{"id": "expor", "label": "expor a coleção no térreo", "type": "decorar", "place": "convivencia", "activity": "pendurando os quadros", "effect": {"decor": "hall_quadros"}, "count": 1},
 		],
 	},
-	"colcha": {
-		"motivation": "quer uma colcha que guarde um pedacinho de cada vizinho",
+	"tecidos_artesanais": {
+		"motivation": "quer deixar as áreas comuns aconchegantes com tecidos feitos à mão",
 		"steps": [
-			{"id": "retalhos", "label": "costurar os primeiros retalhos", "type": "hobby", "hobby": "costura", "count": 2},
-			{"id": "tingir", "label": "conseguir flores para tingir os retalhos", "type": "receber_item", "tag": "flor", "count": 2},
-			{"id": "costurar_junto", "label": "passar uma tarde de costura com alguém", "type": "atividade_compartilhada", "count": 1},
-			{"id": "arremate", "label": "fazer o arremate final", "type": "hobby", "hobby": "costura", "count": 1},
+			{"id": "costurar", "label": "costurar as primeiras peças", "type": "hobby", "hobby": "costura", "count": 2},
+			{"id": "tecido", "label": "conseguir tecidos coloridos", "type": "receber_item", "tag": "tecido", "count": 2},
+			{"id": "visita", "label": "receber alguém para uma tarde de costura", "type": "visita", "count": 1},
+			{"id": "decorar", "label": "decorar a convivência com os tecidos", "type": "decorar", "place": "convivencia", "activity": "arrumando os tecidos na convivência", "effect": {"decor": "convivencia_tecidos"}, "count": 1},
 		],
 	},
 }
@@ -109,7 +116,7 @@ static func matches(step: Dictionary, event_type: String, params: Dictionary) ->
 			return str(params.get("hobby", "")) == str(step.get("hobby", ""))
 		"receber_item":
 			return ItemDB.tags(str(params.get("item_id", ""))).has(step.get("tag", ""))
-		"atividade_compartilhada":
+		"atividade_compartilhada", "decorar":
 			return not step.has("place") or str(params.get("place", "")) == str(step["place"])
 	return true
 
