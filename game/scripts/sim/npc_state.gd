@@ -22,6 +22,21 @@ var rotation_y: float = 0.0
 var cooldowns: Dictionary = {}
 var goal_progress: float = 0.0
 var inside_home: bool = false
+## Objetivo em etapas (0.3): {step, counts, started_day, completed_day, plan_note}
+var goal_state: Dictionary = {"step": 0, "counts": {}, "started_day": 0, "completed_day": 0, "plan_note": ""}
+## Preferências aprendidas com experiências marcantes (no máximo 3).
+var learned_likes: Array = []
+## Quantas vezes recebeu cada item da jogadora.
+var gift_counts: Dictionary = {}
+## Acontecimentos que já contou para a jogadora (evita repetir novidades).
+var told_player: Array = []
+## Pedidos feitos à jogadora: item_id -> minuto absoluto em que expira.
+var requests: Dictionary = {}
+
+# Estado transitório (não persistido).
+var pending_initiatives: Dictionary = {}
+var invitation: Dictionary = {}
+var drift_today: Dictionary = {}
 
 # Estado de execução (não persistido; recriado pela IA após carregar).
 var current_action: Dictionary = {}
@@ -34,6 +49,13 @@ func _init(definition: NpcDefinition = null) -> void:
 		def = definition
 		id = definition.id
 		traits = definition.traits()
+
+
+## Preferência por um item, incluindo gostos aprendidos.
+func preference_for(item_id: String) -> int:
+	if learned_likes.has(item_id):
+		return 1
+	return def.preference_for(item_id) if def else 0
 
 
 func display_name() -> String:
@@ -128,7 +150,20 @@ func to_dict(relationships: Dictionary, memories: Array) -> Dictionary:
 		"position": pos,
 		"rotation_y": snappedf(rotation_y, 0.001),
 		"inside_home": inside_home,
-		"personal_goal": {"id": def.personal_goal_id if def else "", "description": def.personal_goal if def else "", "progress": snappedf(goal_progress, 0.001)},
+		"personal_goal": {
+			"id": def.personal_goal_id if def else "",
+			"description": def.personal_goal if def else "",
+			"progress": snappedf(goal_progress, 0.001),
+			"step": int(goal_state.get("step", 0)),
+			"counts": (goal_state.get("counts", {}) as Dictionary).duplicate(),
+			"started_day": int(goal_state.get("started_day", 0)),
+			"completed_day": int(goal_state.get("completed_day", 0)),
+			"plan_note": str(goal_state.get("plan_note", "")),
+		},
+		"learned_likes": learned_likes.duplicate(),
+		"gift_counts": gift_counts.duplicate(),
+		"told_player": told_player.duplicate(),
+		"requests": _rounded(requests),
 		"relationships": relationships,
 		"memories": memories,
 		"cooldowns": _rounded(cooldowns),
@@ -156,6 +191,37 @@ func apply_dict(data: Dictionary) -> void:
 	inside_home = bool(data.get("inside_home", false))
 	var goal: Dictionary = data.get("personal_goal", {})
 	goal_progress = clampf(float(goal.get("progress", 0.0)), 0.0, 1.0)
+	var n_steps := GoalLibrary.steps(def.personal_goal_id if def else "").size()
+	var counts := {}
+	var saved_counts: Dictionary = goal.get("counts", {})
+	for k in saved_counts:
+		counts[str(k)] = int(saved_counts[k])
+	goal_state = {
+		# Saves antigos (sem etapas): deriva a etapa do progresso salvo.
+		"step": clampi(int(goal.get("step", int(goal_progress * n_steps))), 0, n_steps),
+		"counts": counts,
+		"started_day": int(goal.get("started_day", 0)),
+		"completed_day": int(goal.get("completed_day", 0)),
+		"plan_note": str(goal.get("plan_note", "")).substr(0, 160),
+	}
+	learned_likes = []
+	for it in data.get("learned_likes", []):
+		if ItemDB.exists(str(it)) and learned_likes.size() < 3:
+			learned_likes.append(str(it))
+	gift_counts = {}
+	var gc: Dictionary = data.get("gift_counts", {})
+	for k in gc:
+		gift_counts[str(k)] = int(gc[k])
+	told_player = []
+	for e in data.get("told_player", []):
+		told_player.append(str(e))
+	requests = {}
+	var rq: Dictionary = data.get("requests", {})
+	for k in rq:
+		if ItemDB.exists(str(k)):
+			requests[str(k)] = float(rq[k])
+	pending_initiatives = {}
+	invitation = {}
 	cooldowns = {}
 	var saved_cd: Dictionary = data.get("cooldowns", {})
 	for key in saved_cd:

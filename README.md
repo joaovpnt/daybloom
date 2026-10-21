@@ -5,7 +5,19 @@ Você mora em uma pequena ilha com **oito moradores animais que têm vida própr
 personalidade, necessidades, rotina, memórias, emoções e amizades que evoluem
 mesmo quando você não está olhando.
 
-> Versão atual: **0.2 — Refino visual, Blender e identidade artística**
+> Versão atual: **0.3 — Living Minds: inteligência, memória e vida social**
+
+## Novidades da 0.3 — Living Minds
+
+- Os oito moradores conversam com um **modelo local (Qwen3 4B via Ollama)** compartilhado,
+  cada um com seu jeito de falar, suas memórias e só o que realmente sabe.
+- **Memória** com fatos, opiniões e rumores; quem não viu não inventa.
+- **Objetivos em etapas** que avançam com acontecimentos reais; **personalidade** que
+  muda aos poucos; **iniciativa**: moradores vêm agradecer, pedir ajuda, contar
+  novidades e convidar (dá para ignorar).
+- Conversa cancelável que nunca trava o jogo; sem Ollama, diálogos clássicos.
+- Painel **F3** com o estado da IA. Detalhes em [`docs/ia_living_minds.md`](docs/ia_living_minds.md)
+  e resultados em [`docs/relatorio_0.3.md`](docs/relatorio_0.3.md).
 
 ## Novidades da 0.2
 
@@ -73,8 +85,11 @@ ollama pull qwen3:4b
 ## Como jogar
 
 ```bat
-scripts\iniciar_jogo.bat
+start-all.bat
 ```
+
+(ou `scripts\iniciar_jogo.bat`, que faz o mesmo). O script verifica o serviço do MongoDB
+e o Ollama/modelo, sobe o backend e abre o jogo.
 
 O script sobe o backend (se ainda não estiver rodando), espera ele responder, abre o
 jogo e desliga o backend quando você fecha o Daybloom.
@@ -106,7 +121,8 @@ Se o salvamento falhar, o jogo avisa claramente e **não** finge que salvou.
 | `iniciar_editor.bat` | abre o projeto no editor do Godot |
 | `iniciar_jogo.bat` | backend + jogo |
 | `executar_testes.bat` | testes do backend (pytest) e do jogo (Godot headless) |
-| `verificar_ambiente.bat` | diagnóstico rápido |
+| `verificar_ambiente.bat` | diagnóstico rápido (MongoDB, Ollama/modelo, Godot, backend) |
+| `..\start-all.bat` | atalho na raiz: verifica tudo e abre o jogo |
 
 Defina `DAYBLOOM_SEM_PAUSA=1` para os `.bat` não esperarem uma tecla no final.
 
@@ -124,6 +140,7 @@ Arquivo `backend\.env` (criado a partir de `backend\.env.example`):
 | `DAYBLOOM_OLLAMA_URL` | `http://127.0.0.1:11434` |
 | `DAYBLOOM_OLLAMA_MODEL` | `qwen3:4b` |
 | `DAYBLOOM_OLLAMA_TIMEOUT_S` | `25` |
+| `DAYBLOOM_AI_MAX_CONCURRENT` | `1` (inferências simultâneas) |
 
 No jogo: `DAYBLOOM_API_URL` (ou `DAYBLOOM_PORT`) aponta para o backend, e
 `DAYBLOOM_SAVE_BACKEND=local` usa saves em arquivo (`user://saves`) em vez do MongoDB.
@@ -150,6 +167,11 @@ scripts\executar_testes.bat
   rotinas, interações sociais com proximidade real, afinidade, memórias,
   inventário, coleta, presentes, diálogos, persistência completa sem duplicação e
   integração com a cena (navegação, colisão, conversa e rotina autônoma).
+- **IA (0.3)**: orquestrador (fila, prioridade, cancelamento, deduplicação), contrato
+  estruturado, barreiras contra invenção, contexto com conhecimento limitado, rumores,
+  objetivos, ações autorizadas, iniciativas, evolução de personalidade e cenários A–F.
+  Integração real com Ollama + MongoDB: `game/tests/integracao/ia_real.tscn`; benchmark:
+  `python -m tools.benchmark_ollama` (na pasta `backend`).
 - **Visual (0.2)**: todos os modelos `.glb`, animações e expressões, materiais
   compartilhados, interface em 1280×720 a 2560×1440, caminhos para todos os lugares do
   mapa novo, transparência de oclusão da câmera, reação visual a presentes e
@@ -189,7 +211,8 @@ Mais detalhes em [`docs/arquitetura.md`](docs/arquitetura.md),
 - `main` — versões estáveis
 - `develop` — integração
 - `feature/0.1-fundacao-jogavel` — 0.1
-- `feature/0.2-refino-visual-blender` — esta versão
+- `feature/0.2-refino-visual-blender` — 0.2
+- `feature/0.3-living-minds-ia` — esta versão
 
 Próximas: `0.3-atividades-e-progresso`, `0.4-ia-social-avancada`,
 `0.5-memorias-e-personalidade`, `0.6-dialogos-inteligentes`,

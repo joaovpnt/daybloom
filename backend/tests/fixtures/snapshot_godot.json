@@ -1,6 +1,6 @@
 {
-  "game_version": "0.2.0",
-  "island_id": "ilha_1543c9f22c",
+  "game_version": "0.3.0",
+  "island_id": "ilha_b271a0f2a9",
   "journal": [
     {
       "day": 1,
@@ -16,7 +16,7 @@
       "kind": "gift_received",
       "minute": 615.0,
       "participants": [
-        "jogadora_234c14abe1",
+        "jogadora_eb10adebc6",
         "lila"
       ],
       "text": "Ana deu uma Margarida para Lila, que adorou do presente."
@@ -50,7 +50,7 @@
       "minute": 760.0,
       "participants": [
         "bento",
-        "jogadora_234c14abe1"
+        "jogadora_eb10adebc6"
       ],
       "text": "Ana conversou com Bento pela primeira vez."
     }
@@ -66,46 +66,63 @@
         "mood": "radiante",
         "valence": 0.756
       },
+      "gift_counts": {
+        "margarida": 1
+      },
       "id": "lila",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_lila_1_1",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "lila"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         },
         {
+          "category": "longo_prazo",
           "consequences": [
             "afinidade +8.0"
           ],
           "day": 2,
           "description": "Recebeu uma Margarida de Ana e adorou.",
           "event_ref": "evt_000002",
+          "fact": "Recebeu uma Margarida de Ana e adorou.",
           "id": "mem_lila_2_9",
-          "key": "gift|jogadora_234c14abe1|margarida|2",
+          "importance": 0.8,
+          "interpretation": "Foi um presente muito especial.",
+          "key": "gift|jogadora_eb10adebc6|margarida|2",
           "minute": 615.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "lila"
           ],
+          "public_fact": "Ana deu uma Margarida para Lila, que adorou do presente.",
           "relevance": 0.8,
-          "type": "gift_received"
+          "type": "gift_received",
+          "validity": "valida"
         },
         {
+          "category": "social",
           "consequences": [
             "afinidade +5.7",
             "confiança +3.0"
@@ -113,16 +130,22 @@
           "day": 2,
           "description": "Fizeram Um Piquenique No Parque com Bento.",
           "event_ref": "evt_000004",
-          "id": "mem_lila_2_12",
+          "fact": "Fizeram Um Piquenique No Parque com Bento.",
+          "id": "mem_lila_2_13",
+          "importance": 0.5,
+          "interpretation": "Achou o tempo com Bento muito divertido.",
           "key": "npc_interaction|bento|shared_activity|2",
           "minute": 760.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "bento",
             "lila"
           ],
+          "public_fact": "Lila e Bento fizeram um piquenique no parque.",
           "relevance": 0.5,
-          "type": "npc_interaction"
+          "type": "npc_interaction",
+          "validity": "valida"
         }
       ],
       "name": "Lila",
@@ -133,9 +156,14 @@
         "social": 52.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Fazer o jardim comunitário florescer por completo",
         "id": "jardim_florido",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.35,
@@ -186,7 +214,7 @@
           "talk_day": 0,
           "trust": 38.6
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 8.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -208,7 +236,8 @@
             "minute": 615.0
           },
           "talk_day": 0,
-          "trust": 13.0
+          "trust": 13.0,
+          "trust_marks": []
         },
         "marina": {
           "affinity": 12.0,
@@ -271,9 +300,11 @@
           "trust": 29.0
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "coelha",
-      "state": "SOCIALIZING"
+      "state": "SOCIALIZING",
+      "told_player": []
     },
     {
       "activity": "conversando com Ravena",
@@ -285,28 +316,36 @@
         "mood": "alegre",
         "valence": 0.422
       },
+      "gift_counts": {},
       "id": "tobias",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_tobias_1_2",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "tobias"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         },
         {
+          "category": "social",
           "consequences": [
             "afinidade +2.6",
             "confiança +1.0"
@@ -314,16 +353,22 @@
           "day": 2,
           "description": "Conversou com Ravena sobre as novidades da ilha.",
           "event_ref": "evt_000003",
+          "fact": "Conversou com Ravena sobre as novidades da ilha.",
           "id": "mem_tobias_2_11",
+          "importance": 0.3,
+          "interpretation": "Ainda acha Ravena meio difícil.",
           "key": "npc_interaction|ravena|friendly_chat|2",
           "minute": 700.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "ravena",
             "tobias"
           ],
+          "public_fact": "Ravena e Tobias conversaram sobre as novidades da ilha perto do mural de recados.",
           "relevance": 0.3,
-          "type": "npc_interaction"
+          "type": "npc_interaction",
+          "validity": "valida"
         }
       ],
       "name": "Tobias",
@@ -334,9 +379,14 @@
         "social": 84.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Criar a torta de pêssego perfeita",
         "id": "torta_perfeita",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.6,
@@ -375,7 +425,7 @@
           "talk_day": 0,
           "trust": 37.0
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -460,9 +510,11 @@
           "trust": 21.24
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "urso",
-      "state": "SOCIALIZING"
+      "state": "SOCIALIZING",
+      "told_player": []
     },
     {
       "activity": "parado",
@@ -472,26 +524,33 @@
         "mood": "tranquila",
         "valence": 0.164
       },
+      "gift_counts": {},
       "id": "marina",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_marina_1_3",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "marina"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         }
       ],
       "name": "Marina",
@@ -502,9 +561,14 @@
         "social": 44.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Completar a coleção de conchas raras da ilha",
         "id": "colecao_conchas",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.85,
@@ -543,7 +607,7 @@
           "talk_day": 0,
           "trust": 28.2
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -616,9 +680,11 @@
           "trust": 26.6
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "lontra",
-      "state": "IDLE"
+      "state": "IDLE",
+      "told_player": []
     },
     {
       "activity": "parado",
@@ -628,26 +694,33 @@
         "mood": "dormindo",
         "valence": 0.418
       },
+      "gift_counts": {},
       "id": "otavio",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_otavio_1_4",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "otavio"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         }
       ],
       "name": "Otávio",
@@ -658,9 +731,14 @@
         "social": 78.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Mapear todas as constelações do céu da ilha",
         "id": "mapa_estelar",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.4,
@@ -699,7 +777,7 @@
           "talk_day": 0,
           "trust": 34.6
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -772,9 +850,11 @@
           "trust": 27.0
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "coruja",
-      "state": "IDLE"
+      "state": "IDLE",
+      "told_player": []
     },
     {
       "activity": "parado",
@@ -784,26 +864,55 @@
         "mood": "alegre",
         "valence": 0.299
       },
+      "gift_counts": {},
       "id": "pipa",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_pipa_1_5",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "pipa"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
+        },
+        {
+          "category": "social",
+          "consequences": [],
+          "day": 2,
+          "description": "Viu Ravena e Tobias conversando perto do mural de recados.",
+          "event_ref": "evt_000003",
+          "fact": "Viu Ravena e Tobias conversando perto do mural de recados.",
+          "id": "mem_pipa_2_12",
+          "importance": 0.35,
+          "key": "obs|evt_000003",
+          "minute": 700.0,
+          "occurrences": 1,
+          "origin": "observacao",
+          "participants": [
+            "ravena",
+            "tobias"
+          ],
+          "public_fact": "Ravena e Tobias conversaram sobre as novidades da ilha perto do mural de recados.",
+          "relevance": 0.35,
+          "type": "observation",
+          "validity": "valida"
         }
       ],
       "name": "Pipa",
@@ -814,9 +923,14 @@
         "social": 46.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Entregar cartas na porta de todos os moradores",
         "id": "cartas_entregues",
-        "progress": 0.3
+        "plan_note": "",
+        "progress": 0.3,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.65,
@@ -855,7 +969,7 @@
           "talk_day": 0,
           "trust": 25.4
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -928,9 +1042,11 @@
           "trust": 25.4
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "esquilo",
-      "state": "IDLE"
+      "state": "IDLE",
+      "told_player": []
     },
     {
       "activity": "se divertindo com Lila",
@@ -942,28 +1058,36 @@
         "mood": "alegre",
         "valence": 0.411
       },
+      "gift_counts": {},
       "id": "bento",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_bento_1_6",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "bento",
-            "jogadora_234c14abe1"
+            "jogadora_eb10adebc6"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         },
         {
+          "category": "social",
           "consequences": [
             "afinidade +5.6",
             "confiança +3.0"
@@ -971,34 +1095,68 @@
           "day": 2,
           "description": "Fizeram Um Piquenique No Parque com Lila.",
           "event_ref": "evt_000004",
-          "id": "mem_bento_2_13",
+          "fact": "Fizeram Um Piquenique No Parque com Lila.",
+          "id": "mem_bento_2_14",
+          "importance": 0.5,
+          "interpretation": "Achou o tempo com Lila muito divertido.",
           "key": "npc_interaction|lila|shared_activity|2",
           "minute": 760.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "bento",
             "lila"
           ],
+          "public_fact": "Lila e Bento fizeram um piquenique no parque.",
           "relevance": 0.5,
-          "type": "npc_interaction"
+          "type": "npc_interaction",
+          "validity": "valida"
         },
         {
+          "category": "social",
+          "consequences": [],
+          "day": 2,
+          "description": "Ouviu de Lila: Ana deu uma Margarida para Lila, que adorou do presente.",
+          "event_ref": "evt_000002",
+          "fact": "Ouviu de Lila: Ana deu uma Margarida para Lila, que adorou do presente.",
+          "id": "mem_bento_2_15",
+          "importance": 0.56,
+          "key": "rumor|evt_000002",
+          "minute": 760.0,
+          "occurrences": 1,
+          "origin": "comunicacao",
+          "participants": [
+            "jogadora_eb10adebc6",
+            "lila"
+          ],
+          "public_fact": "Ana deu uma Margarida para Lila, que adorou do presente.",
+          "relevance": 0.56,
+          "source_id": "lila",
+          "type": "rumor",
+          "validity": "valida"
+        },
+        {
+          "category": "longo_prazo",
           "consequences": [
             "primeiro encontro"
           ],
           "day": 2,
           "description": "Conheceu Ana e conversaram pela primeira vez.",
           "event_ref": "evt_000005",
-          "id": "mem_bento_2_14",
-          "key": "first_talk|jogadora_234c14abe1",
+          "fact": "Conheceu Ana e conversaram pela primeira vez.",
+          "id": "mem_bento_2_16",
+          "importance": 0.75,
+          "key": "first_talk|jogadora_eb10adebc6",
           "minute": 760.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "bento",
-            "jogadora_234c14abe1"
+            "jogadora_eb10adebc6"
           ],
           "relevance": 0.75,
-          "type": "important_conversation"
+          "type": "important_conversation",
+          "validity": "valida"
         }
       ],
       "name": "Bento",
@@ -1009,9 +1167,14 @@
         "social": 61.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Compor uma canção para cada morador da ilha",
         "id": "cancoes",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.5,
@@ -1038,7 +1201,7 @@
           "talk_day": 0,
           "trust": 29.8
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 3.6,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1060,7 +1223,8 @@
             "minute": 760.0
           },
           "talk_day": 2,
-          "trust": 11.5
+          "trust": 11.5,
+          "trust_marks": []
         },
         "lila": {
           "affinity": 37.9,
@@ -1147,9 +1311,11 @@
           "trust": 29.8
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "sapo",
-      "state": "SOCIALIZING"
+      "state": "SOCIALIZING",
+      "told_player": []
     },
     {
       "activity": "conversando com Tobias",
@@ -1161,28 +1327,36 @@
         "mood": "alegre",
         "valence": 0.316
       },
+      "gift_counts": {},
       "id": "ravena",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_ravena_1_7",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
-            "jogadora_234c14abe1",
+            "jogadora_eb10adebc6",
             "ravena"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         },
         {
+          "category": "social",
           "consequences": [
             "afinidade +2.3",
             "confiança +1.0"
@@ -1190,16 +1364,22 @@
           "day": 2,
           "description": "Conversou com Tobias sobre as novidades da ilha.",
           "event_ref": "evt_000003",
+          "fact": "Conversou com Tobias sobre as novidades da ilha.",
           "id": "mem_ravena_2_10",
+          "importance": 0.3,
+          "interpretation": "Ainda acha Tobias meio difícil.",
           "key": "npc_interaction|tobias|friendly_chat|2",
           "minute": 700.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "ravena",
             "tobias"
           ],
+          "public_fact": "Ravena e Tobias conversaram sobre as novidades da ilha perto do mural de recados.",
           "relevance": 0.3,
-          "type": "npc_interaction"
+          "type": "npc_interaction",
+          "validity": "valida"
         }
       ],
       "name": "Ravena",
@@ -1210,16 +1390,21 @@
         "social": 55.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Pintar a paisagem perfeita da ilha",
         "id": "paisagem_perfeita",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
-        "coragem": 0.85,
+        "coragem": 0.852,
         "curiosidade": 0.75,
         "energia": 0.65,
         "gentileza": 0.3,
-        "sociabilidade": 0.4
+        "sociabilidade": 0.404
       },
       "position": {
         "x": -28.3,
@@ -1251,7 +1436,7 @@
           "talk_day": 0,
           "trust": 26.2
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1336,9 +1521,11 @@
           "trust": 20.4
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "raposa",
-      "state": "SOCIALIZING"
+      "state": "SOCIALIZING",
+      "told_player": []
     },
     {
       "activity": "parado",
@@ -1348,26 +1535,33 @@
         "mood": "alegre",
         "valence": 0.374
       },
+      "gift_counts": {},
       "id": "celeste",
       "inside_home": false,
+      "learned_likes": [],
       "memories": [
         {
+          "category": "episodica",
           "consequences": [
             "nova_moradora"
           ],
           "day": 1,
           "description": "Ana chegou para morar na ilha.",
           "event_ref": "evt_000001",
+          "fact": "Ana chegou para morar na ilha.",
           "id": "mem_celeste_1_8",
+          "importance": 0.7,
           "key": "chegada_jogadora",
           "minute": 480.0,
           "occurrences": 1,
+          "origin": "participacao",
           "participants": [
             "celeste",
-            "jogadora_234c14abe1"
+            "jogadora_eb10adebc6"
           ],
           "relevance": 0.7,
-          "type": "community_event"
+          "type": "community_event",
+          "validity": "valida"
         }
       ],
       "name": "Dona Celeste",
@@ -1378,9 +1572,14 @@
         "social": 52.0
       },
       "personal_goal": {
+        "completed_day": 0,
+        "counts": {},
         "description": "Costurar uma colcha com retalhos de todos os moradores",
         "id": "colcha",
-        "progress": 0.0
+        "plan_note": "",
+        "progress": 0.0,
+        "started_day": 0,
+        "step": 0
       },
       "personality": {
         "coragem": 0.25,
@@ -1407,7 +1606,7 @@
           "talk_day": 0,
           "trust": 25.0
         },
-        "jogadora_234c14abe1": {
+        "jogadora_eb10adebc6": {
           "affinity": 0.0,
           "conflict_open": false,
           "conflict_since": 0.0,
@@ -1492,13 +1691,15 @@
           "trust": 35.2
         }
       },
+      "requests": {},
       "rotation_y": 0.0,
       "species": "ovelha",
-      "state": "IDLE"
+      "state": "IDLE",
+      "told_player": []
     }
   ],
   "player": {
-    "id": "jogadora_234c14abe1",
+    "id": "jogadora_eb10adebc6",
     "inventory": [
       {
         "count": 2,
@@ -1521,9 +1722,9 @@
     },
     "rotation_y": 3.142
   },
-  "player_id": "jogadora_234c14abe1",
+  "player_id": "jogadora_eb10adebc6",
   "save_slot_id": "slot1",
-  "saved_at": "2026-10-20T20:55:08Z",
+  "saved_at": "2026-10-21T15:20:32Z",
   "schema_version": 1,
   "world": {
     "day": 2,

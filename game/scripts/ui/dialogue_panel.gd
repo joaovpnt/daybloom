@@ -22,6 +22,12 @@ var send_button: Button
 var gift_button: Button
 var thinking_label: Label
 var typing: TypingDots
+var cancel_button: Button
+var mode_chip: Label
+var emotion_chip_holder: HBoxContainer
+var last_emotion: String = ""
+var last_response: Dictionary = {}
+var current_initiative: Dictionary = {}
 var history: Array = []
 var waiting_exchange: String = ""
 var rng := RandomNumberGenerator.new()
@@ -59,6 +65,9 @@ func _ready() -> void:
 	hearts = UiTheme.hearts_label(0.0, 20)
 	hearts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	left.add_child(hearts)
+	emotion_chip_holder = HBoxContainer.new()
+	emotion_chip_holder.alignment = BoxContainer.ALIGNMENT_CENTER
+	left.add_child(emotion_chip_holder)
 	# Coluna da conversa
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -90,7 +99,21 @@ func _ready() -> void:
 	typing.visible = false
 	status.add_child(typing)
 	thinking_label = UiTheme.label("", UiTheme.SIZE_SMALL, UiTheme.INK_SOFT, true)
+	thinking_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	status.add_child(thinking_label)
+	cancel_button = Button.new()
+	cancel_button.text = "Cancelar"
+	cancel_button.flat = true
+	cancel_button.visible = false
+	cancel_button.focus_mode = Control.FOCUS_ALL
+	cancel_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	cancel_button.add_theme_color_override("font_color", UiTheme.CORAL_DARK)
+	cancel_button.add_theme_font_size_override("font_size", UiTheme.SIZE_SMALL)
+	cancel_button.pressed.connect(cancel_request)
+	status.add_child(cancel_button)
+	mode_chip = UiTheme.label("", 13, UiTheme.INK_FAINT, true)
+	mode_chip.tooltip_text = "As respostas usam os diálogos clássicos do jogo (IA local indisponível)."
+	status.add_child(mode_chip)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", UiTheme.SPACE_S)
 	right.add_child(row)
@@ -119,21 +142,29 @@ func _scroll_end() -> void:
 	log_scroll.scroll_vertical = int(log_scroll.get_v_scroll_bar().max_value)
 
 
-func open(p_npc_id: String) -> void:
+func open(p_npc_id: String, initiative: Dictionary = {}) -> void:
 	npc_id = p_npc_id
 	history.clear()
 	waiting_exchange = ""
 	thinking_label.text = ""
 	typing.visible = false
+	cancel_button.visible = false
 	log_text.text = ""
+	last_emotion = ""
+	for c in emotion_chip_holder.get_children():
+		c.queue_free()
+	current_initiative = initiative
 	var sim := GameState.sim
 	var npc: NpcState = sim.npcs[npc_id]
 	portrait.npc_id = npc_id
-	var greeting := FallbackDialogue.greeting(npc, sim, rng)
 	sim.register_player_talk(npc_id)
+	_set_mode(ApiClient.last_health.get("ollama", false))
 	_refresh_header()
-	_append_npc(greeting)
 	visible = true
+	if initiative.is_empty():
+		_append_npc(FallbackDialogue.greeting(npc, sim, rng))
+	else:
+		_open_with_initiative(npc, initiative)
 	UiTheme.place(self, Control.PRESET_CENTER_BOTTOM, 24)
 	UiTheme.pop_in(self, 0.98)
 	input.editable = true
@@ -149,7 +180,14 @@ func _refresh_header() -> void:
 	subheader.text = "%s · %s" % [npc.def.species.capitalize(), npc.def.occupation]
 	for c in mood_holder.get_children():
 		c.queue_free()
-	mood_holder.add_child(UiTheme.chip(npc.mood.capitalize(), UiTheme.mood_color(npc.mood)))
+	# A reação do momento (validada) substitui o humor geral no chip, para não
+	# mostrar estados contraditórios ("radiante" e "triste" ao mesmo tempo).
+	var base: String = EMOTION_LABELS.get(last_emotion, "")
+	if base != "":
+		var lbl := base if base.ends_with("e") else base + npc.def.article()
+		mood_holder.add_child(UiTheme.chip(lbl.capitalize(), EMOTION_COLORS.get(last_emotion, UiTheme.SKY)))
+	else:
+		mood_holder.add_child(UiTheme.chip(npc.mood.capitalize(), UiTheme.mood_color(npc.mood)))
 	mood_holder.add_child(UiTheme.chip(RelationshipSystem.label_for(float(rel["affinity"])).capitalize(), UiTheme.CORAL))
 	hearts.text = UiTheme.hearts_text(float(rel["affinity"]))
 	hearts.tooltip_text = "Afinidade %.0f · Confiança %.0f" % [float(rel["affinity"]), float(rel["trust"])]
@@ -189,6 +227,8 @@ func _on_send() -> void:
 
 
 ## Obtém a resposta do morador (modelo de linguagem ou diálogos clássicos).
+## A interface nunca trava: a resposta chega de forma assíncrona e pode ser
+## cancelada; respostas atrasadas de trocas antigas são descartadas.
 func respond_to(text: String) -> void:
 	var sim := GameState.sim
 	var npc: NpcState = sim.npcs[npc_id]
@@ -198,9 +238,11 @@ func respond_to(text: String) -> void:
 	send_button.disabled = true
 	var reply := ""
 	var source := "fallback"
+	var data: Dictionary = {}
 	var use_llm: bool = ApiClient.last_health.get("ollama", false)
 	if use_llm:
 		typing.visible = true
+		cancel_button.visible = true
 		thinking_label.text = "%s está pensando..." % npc.display_name()
 		var hist := history.slice(0, history.size() - 1)
 		var body := {
@@ -210,38 +252,155 @@ func respond_to(text: String) -> void:
 			"player_id": sim.player_id,
 			"npc_id": npc_id,
 			"message": text,
-			"context": DialogueContext.build(npc, sim, text),
+			"context": ContextBuilder.build(npc, sim, text, hist),
 			"history": hist.slice(max(0, hist.size() - 6)),
 		}
-		var res: Dictionary = await ApiClient.request_json(HTTPClient.METHOD_POST, "/api/v1/dialogue", body, LLM_TIMEOUT)
+		var res: Dictionary = await ApiClient.request_json(HTTPClient.METHOD_POST, "/api/v1/dialogue", body, LLM_TIMEOUT + 20.0)
 		if waiting_exchange != exchange or not visible:
-			return
+			return  # cancelada ou conversa encerrada: descarta a resposta atrasada
 		if res["ok"] and res["data"].get("source", "") == "ollama" and str(res["data"].get("reply", "")) != "":
-			reply = str(res["data"]["reply"])
+			data = res["data"]
+			reply = str(data["reply"])
 			source = "ollama"
-			var action := str(res["data"].get("suggested_action", "nenhuma"))
-			if action != "nenhuma":
-				var applied := sim.apply_suggested_action(npc_id, action, text)
-				if applied.get("applied", false):
-					if action == "sorrir":
-						EventBus.npc_reaction.emit(npc_id, "gift_liked")
-					elif action == "ficar_triste":
-						EventBus.npc_reaction.emit(npc_id, "negative_end")
+		elif res["ok"]:
+			data = res["data"]
 	if reply == "":
 		reply = FallbackDialogue.respond(npc, sim, text, rng)["text"]
+	_finish_reply(text, reply, source, data, use_llm)
+	if FallbackDialogue.detect_intent(text, npc_id)["intent"] == "bye" and is_inside_tree():
+		await get_tree().create_timer(1.2).timeout
+		if visible and waiting_exchange == "":
+			close_panel()
+
+
+func _finish_reply(player_text: String, reply: String, source: String, data: Dictionary, tried_llm: bool) -> void:
+	var sim := GameState.sim
 	waiting_exchange = ""
 	typing.visible = false
-	thinking_label.text = "" if source == "ollama" else ("diálogo clássico — IA indisponível no momento" if use_llm else "")
+	cancel_button.visible = false
+	last_response = data
+	if source == "ollama":
+		thinking_label.text = ""
+		_apply_validated(data, player_text)
+	else:
+		var reason := str(data.get("reason", ""))
+		thinking_label.text = _friendly_reason(reason) if tried_llm else ""
+	_set_mode(source == "ollama" or (ApiClient.last_health.get("ollama", false) and not tried_llm))
 	_append_npc(reply, source)
+	_remember_exchange(player_text)
 	_refresh_header()
 	input.editable = true
 	send_button.disabled = false
 	if is_inside_tree():
 		input.grab_focus()
-	if FallbackDialogue.detect_intent(text, npc_id)["intent"] == "bye" and is_inside_tree():
-		await get_tree().create_timer(1.2).timeout
-		if visible and waiting_exchange == "":
-			close_panel()
+
+
+## Aplica só o que foi validado: emoção (visual + leve efeito no humor),
+## memórias citadas (reforço) e ação autorizada pelo simulador.
+func _apply_validated(data: Dictionary, player_text: String) -> void:
+	var sim := GameState.sim
+	var emotion := str(data.get("emotion", "neutra"))
+	sim.apply_ai_emotion(npc_id, emotion)
+	EventBus.npc_reaction.emit(npc_id, "emotion_" + emotion)
+	_show_emotion(emotion)
+	var mem_ids: Array = data.get("memory_ids", [])
+	if not mem_ids.is_empty():
+		sim.memories.recall(npc_id, mem_ids)
+	var action = data.get("action")
+	if action != null and str(action) != "":
+		var result := sim.apply_ai_action(npc_id, str(action), data.get("action_params", {}), player_text)
+		if result.get("applied", false) and str(result.get("effect", "")) != "":
+			log_text.append_text("[i][color=#8a7562]%s[/color][/i]\n" % _escape(str(result["effect"])))
+
+
+## Memória recente da conversa (para continuidade em outra visita).
+func _remember_exchange(player_text: String) -> void:
+	var clean := player_text.strip_edges().replace("\n", " ")
+	if clean.length() < 12:
+		return
+	var sim := GameState.sim
+	sim.memories.add_memory(npc_id, "player_conversation", [npc_id, sim.player_id], "%s disse: «%s»" % [sim.player_name, clean.substr(0, 140)], 0.3, [], "conversa_%d" % sim.day, sim.time_dict(), "conversa|%s|%d" % [sim.player_id, sim.day], {"origin": "jogadora"})
+
+
+func cancel_request() -> void:
+	if waiting_exchange == "":
+		return
+	var exchange := waiting_exchange
+	ApiClient.cancel_ai(exchange)
+	waiting_exchange = ""
+	var sim := GameState.sim
+	var npc: NpcState = sim.npcs[npc_id]
+	var last_player := ""
+	for i in range(history.size() - 1, -1, -1):
+		if history[i]["role"] == "jogadora":
+			last_player = history[i]["text"]
+			break
+	var reply: String = FallbackDialogue.respond(npc, sim, last_player, rng)["text"]
+	_finish_reply(last_player, reply, "fallback", {"reason": "cancelada"}, true)
+
+
+func _open_with_initiative(npc: NpcState, cand: Dictionary) -> void:
+	var sim := GameState.sim
+	var line := FallbackDialogue.initiative_line(npc, sim, cand, rng)
+	if ApiClient.last_health.get("ollama", false):
+		var exchange := "ini_%s_%d" % [npc_id, Time.get_ticks_msec()]
+		waiting_exchange = exchange
+		typing.visible = true
+		cancel_button.visible = true
+		input.editable = false
+		thinking_label.text = "%s está pensando..." % npc.display_name()
+		var body := {"exchange_id": exchange, "npc_id": npc_id, "reason": cand.get("reason", "pergunta"),
+			"detail": str(cand.get("detail", "")).substr(0, 190), "context": ContextBuilder.build(npc, sim, str(cand.get("detail", "")))}
+		var res: Dictionary = await ApiClient.request_json(HTTPClient.METHOD_POST, "/api/v1/ai/initiative", body, 45.0)
+		if waiting_exchange != exchange or not visible:
+			return
+		typing.visible = false
+		cancel_button.visible = false
+		input.editable = true
+		waiting_exchange = ""
+		thinking_label.text = ""
+		if res["ok"] and res["data"].get("source", "") == "ollama":
+			line = str(res["data"]["reply"])
+			var emotion := str(res["data"].get("emotion", "alegre"))
+			EventBus.npc_reaction.emit(npc_id, "emotion_" + emotion)
+			_show_emotion(emotion)
+	_append_npc(line)
+	input.grab_focus()
+
+
+func _friendly_reason(reason: String) -> String:
+	match reason:
+		"timeout":
+			return "A resposta demorou demais; usei um diálogo clássico."
+		"cancelada":
+			return "Pedido cancelado; usei um diálogo clássico."
+		"ollama_desativado", "indisponivel", "modelo_indisponivel":
+			return "IA local indisponível; usando diálogos clássicos."
+		"":
+			return "Backend indisponível; usando diálogos clássicos."
+	return "Para não inventar nada, usei um diálogo clássico."
+
+
+func _set_mode(llm: bool) -> void:
+	mode_chip.text = "" if llm else "diálogo clássico"
+
+
+const EMOTION_LABELS := {"alegre": "alegre", "animada": "animad", "triste": "triste", "surpresa": "surpres",
+	"pensativa": "pensativ", "envergonhada": "envergonhad", "irritada": "irritad", "neutra": ""}
+const EMOTION_COLORS := {"alegre": Color("f6c25b"), "animada": Color("f6c25b"), "triste": Color("7fb8e6"),
+	"surpresa": Color("f0a35c"), "pensativa": Color("b49be0"), "envergonhada": Color("e58fb0"), "irritada": Color("e07b62")}
+
+
+func _show_emotion(emotion: String) -> void:
+	last_emotion = emotion
+	for c in emotion_chip_holder.get_children():
+		c.queue_free()
+	if EMOTION_LABELS.get(emotion, "") == "":
+		return
+	var hint := UiTheme.label("reação do momento", 12, UiTheme.INK_FAINT, true)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	emotion_chip_holder.add_child(hint)
+	_refresh_header()
 
 
 func give_item(item_id: String) -> Dictionary:
@@ -260,6 +419,13 @@ func give_item(item_id: String) -> Dictionary:
 		var delta: float = result["affinity_delta"]
 		if delta != 0.0:
 			EventBus.toast_requested.emit("%s: afinidade %+.0f" % [npc.display_name(), delta])
+		if result.get("request_fulfilled", false):
+			log_text.append_text("[i][color=#4e9e5d]Era exatamente o que %s tinha pedido![/color][/i]\n" % npc.display_name())
+		if result.get("learned_like", false):
+			log_text.append_text("[i][color=#8a7562]%s passou a gostar de %s.[/color][/i]\n" % [npc.display_name(), ItemDB.display_name(item_id).to_lower()])
+		var goal: Dictionary = result.get("goal", {})
+		if goal.get("advanced", false):
+			log_text.append_text("[i][color=#8a7562]Isso ajudou %s no objetivo: %s.[/color][/i]\n" % [npc.display_name(), goal.get("step_label", "")])
 	else:
 		_append_npc("Hmm... (%s)" % result["reason"])
 	_refresh_header()
@@ -268,6 +434,8 @@ func give_item(item_id: String) -> Dictionary:
 
 func close_panel() -> void:
 	if visible:
+		if waiting_exchange != "":
+			ApiClient.cancel_ai(waiting_exchange)
 		visible = false
 		waiting_exchange = ""
 		closed.emit()

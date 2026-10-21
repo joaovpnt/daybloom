@@ -28,6 +28,21 @@ extends Resource
 @export var speech_style: String = ""
 @export var catchphrase: String = ""
 
+@export_group("Conversa (0.3)")
+## Palavras e expressões típicas do jeito de falar.
+@export var vocabulary: PackedStringArray = []
+@export var temperament: String = ""
+@export var values: PackedStringArray = []
+@export var favorite_topics: PackedStringArray = []
+@export var disliked_topics: PackedStringArray = []
+@export var long_term_goals: PackedStringArray = []
+## O que o morador não faz ou não aceita socialmente.
+@export var social_limits: String = ""
+@export var characteristic_reactions: String = ""
+@export var friendship_style: String = ""
+## Nomes pelos quais os outros se referem a este morador (para detectar menções).
+@export var aliases: PackedStringArray = []
+
 @export_group("Preferências")
 ## IDs ou tags de itens (ver ItemDB): "flor", "concha", "pessego"...
 @export var likes: PackedStringArray = []

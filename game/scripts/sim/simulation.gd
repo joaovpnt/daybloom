@@ -10,6 +10,7 @@ signal memory_added(npc_id: String, memory: Dictionary)
 signal npc_state_changed(npc_id: String, state: String, activity: String)
 signal interaction_started(a_id: String, b_id: String, kind: String)
 signal interaction_finished(a_id: String, b_id: String, kind: String, outcome: Dictionary)
+signal goal_changed(npc_id: String, info: Dictionary)
 
 const NPC_COUNT := 8
 const NPC_IDS := ["lila", "tobias", "marina", "otavio", "pipa", "bento", "ravena", "celeste"]
@@ -352,8 +353,10 @@ func apply_interaction_outcome(it: Dictionary) -> Dictionary:
 	var consequences := ["afinidade %+.1f" % d_aff_a, "confiança %+.1f" % d_trust]
 	var dedup_a := "npc_interaction|%s|%s|%d" % [b.id, kind, day]
 	var dedup_b := "npc_interaction|%s|%s|%d" % [a.id, kind, day]
-	_remember(a.id, "npc_interaction", [a.id, b.id], mem_a, relevance, consequences, evt, dedup_a)
-	_remember(b.id, "npc_interaction", [a.id, b.id], mem_b, relevance, ["afinidade %+.1f" % d_aff_b, "confiança %+.1f" % d_trust], evt, dedup_b)
+	var interp_a := _interpretation(a, b, kind)
+	var interp_b := _interpretation(b, a, kind)
+	_remember(a.id, "npc_interaction", [a.id, b.id], mem_a, relevance, consequences, evt, dedup_a, {"public": text, "interpretation": interp_a})
+	_remember(b.id, "npc_interaction", [a.id, b.id], mem_b, relevance, ["afinidade %+.1f" % d_aff_b, "confiança %+.1f" % d_trust], evt, dedup_b, {"public": text, "interpretation": interp_b})
 	_relationship_change_memory(a, b, change_a, evt)
 	_relationship_change_memory(b, a, change_b, evt)
 	var cd := SocialRules.PAIR_CHAT_COOLDOWN + (60.0 if kind == SocialRules.KIND_SHARED else 0.0)
@@ -369,6 +372,25 @@ func apply_interaction_outcome(it: Dictionary) -> Dictionary:
 	if journal_it:
 		var entry := journal.add(evt, kind, [a.id, b.id], text, time)
 		journal_added.emit(entry)
+	# 0.3: quem estava perto viu; quem conversou troca novidades que conhece.
+	outcome["observers"] = _observe(evt, kind, [a.id, b.id], (a.position + b.position) * 0.5, text, place_label)
+	outcome["shared"] = []
+	if kind in [SocialRules.KIND_CHAT, SocialRules.KIND_SHARED, SocialRules.KIND_RECONCILIATION]:
+		outcome["shared"] += share_news(a.id, b.id)
+		outcome["shared"] += share_news(b.id, a.id)
+	if kind == SocialRules.KIND_SHARED:
+		goal_event(a.id, "atividade_compartilhada", {"place": place, "with": b.id})
+		goal_event(b.id, "atividade_compartilhada", {"place": place, "with": a.id})
+	for n in [a, b]:
+		match kind:
+			SocialRules.KIND_DISAGREEMENT:
+				evolve_trait(n, "gentileza", -0.004)
+			SocialRules.KIND_RECONCILIATION:
+				evolve_trait(n, "gentileza", 0.003)
+				_positive_experience(n)
+			_:
+				_positive_experience(n)
+	_check_new_friendship(a, b, change_a, evt)
 	return outcome
 
 
@@ -386,12 +408,13 @@ func _relationship_change_memory_player(owner: NpcState, change: Dictionary, evt
 	var label: String = change["new_label"]
 	var desc := "Sente que agora %s e %s são %s." % [owner.display_name(), player_name, label]
 	_remember(owner.id, "relationship_change", [owner.id, player_id], desc, 0.8, ["relação: %s → %s" % [change["old_label"], label]], evt, "rel|%s|%s" % [player_id, label])
-	var entry := journal.add(evt + "_rel", "relationship_change", [owner.id, player_id], "%s e %s agora são %s." % [owner.display_name(), player_name, label], time_dict())
+	var rel_kind := "new_friendship" if change["improved"] and label in ["amigos", "bons amigos", "melhores amigos"] else "relationship_change"
+	var entry := journal.add(evt + "_rel", rel_kind, [owner.id, player_id], "%s e %s agora são %s." % [owner.display_name(), player_name, label], time_dict())
 	journal_added.emit(entry)
 
 
-func _remember(npc_id: String, type: String, participants: Array, description: String, relevance: float, consequences: Array, evt: String, dedup_key: String = "") -> Dictionary:
-	var result := memories.add_memory(npc_id, type, participants, description, relevance, consequences, evt, time_dict(), dedup_key)
+func _remember(npc_id: String, type: String, participants: Array, description: String, relevance: float, consequences: Array, evt: String, dedup_key: String = "", extra: Dictionary = {}) -> Dictionary:
+	var result := memories.add_memory(npc_id, type, participants, description, relevance, consequences, evt, time_dict(), dedup_key, extra)
 	memory_added.emit(npc_id, result["memory"])
 	return result
 
@@ -402,6 +425,8 @@ static func _prep(label: String) -> String:
 	for f in feminine:
 		if label.begins_with(f) or label.contains("casa"):
 			return "a"
+	if label.begins_with("jardim") or label.begins_with("parque") or label.begins_with("centro"):
+		return "o"
 	if label.begins_with("píer") or label.begins_with("lago") or label.begins_with("coreto") or label.begins_with("mirante") or label.begins_with("pomar") or label.begins_with("bosque") or label.begins_with("quiosque") or label.begins_with("mural") or label.begins_with("banco"):
 		return "o"
 	return "a"
@@ -434,28 +459,11 @@ func conclude_gathering(attendees: Array) -> Dictionary:
 # --- objetivos pessoais ---------------------------------------------------
 
 func complete_activity(npc_id: String, action: Dictionary) -> void:
-	var npc: NpcState = npcs[npc_id]
 	var kind: String = action.get("kind", "")
-	var gain := 0.0
 	if kind == "work":
-		gain = 0.0625 if npc.id == "pipa" else 0.04
-	elif kind == "leisure" and npc.def.hobbies.size() > 0 and action.get("hobby", "") == npc.def.hobbies[0]:
-		gain = 0.03
-	if gain <= 0.0 or npc.goal_progress >= 1.0:
-		return
-	var before := npc.goal_progress
-	npc.goal_progress = minf(1.0, npc.goal_progress + gain)
-	for milestone in [0.5, 1.0]:
-		if before < milestone and npc.goal_progress >= milestone:
-			var evt := next_event_id()
-			var text := ""
-			if milestone >= 1.0:
-				text = "%s alcançou seu objetivo: %s!" % [npc.display_name(), npc.def.personal_goal.to_lower()]
-			else:
-				text = "%s está na metade do caminho para %s." % [npc.display_name(), npc.def.personal_goal.to_lower()]
-			_remember(npc_id, "community_event", [npc_id], text, 0.8, ["objetivo pessoal %d%%" % int(milestone * 100)], evt, "goal|%s" % str(milestone))
-			var entry := journal.add(evt, "community_event", [npc_id], text, time_dict())
-			journal_added.emit(entry)
+		goal_event(npc_id, "trabalho", {})
+	elif kind == "leisure" and action.get("hobby", "") != "":
+		goal_event(npc_id, "hobby", {"hobby": action.get("hobby", "")})
 
 
 # --- jogadora ---------------------------------------------------------------
@@ -470,6 +478,7 @@ func register_player_talk(npc_id: String) -> Dictionary:
 	rel["talk_day"] = day
 	var evt := next_event_id()
 	var gain := 2.0 + npc.trait_value("sociabilidade") * 2.0
+	var trust_before := float(rel["trust"])
 	var change := relationships.apply_event(npc_id, player_id, "conversation", gain, 1.5, evt, time_dict())
 	npc.add_need("social", 8.0)
 	if first_ever:
@@ -479,8 +488,11 @@ func register_player_talk(npc_id: String) -> Dictionary:
 	else:
 		_remember(npc_id, "important_conversation", [npc_id, player_id], "Bateu papo com %s." % player_name, 0.35, [], evt, "talk|%s|%d" % [player_id, day])
 	_relationship_change_memory_player(npc, change, evt)
+	_check_trust_milestone(npc, trust_before, evt)
 	relationship_changed.emit(npc_id, player_id, rel)
-	return {"first_today": true, "first_ever": first_ever, "affinity_delta": gain}
+	_positive_experience(npc)
+	var goal := goal_event(npc_id, "conversar_jogadora", {})
+	return {"first_today": true, "first_ever": first_ever, "affinity_delta": gain, "goal": goal}
 
 
 ## Aplica uma ação sugerida pelo modelo de linguagem, somente se for válida.
@@ -522,7 +534,8 @@ func give_gift(npc_id: String, item_id: String, inventory: Inventory) -> Diction
 	if npc.is_sleeping():
 		return {"ok": false, "reason": "%s está dormindo" % npc.display_name()}
 	inventory.remove(item_id, 1)
-	var pref := npc.def.preference_for(item_id)
+	var pref := npc.preference_for(item_id)
+	var trust_before := float(relationships.get_rel(npc_id, player_id)["trust"])
 	var rel: Dictionary = relationships.get_rel(npc_id, player_id)
 	if int(rel.get("gift_day", 0)) != day:
 		rel["gift_day"] = day
@@ -560,11 +573,14 @@ func give_gift(npc_id: String, item_id: String, inventory: Inventory) -> Diction
 	var change := relationships.apply_event(npc_id, player_id, "gift", d_aff, d_trust, evt, time_dict())
 	var item_text := ItemDB.with_article(item_id)
 	var desc := "Recebeu %s de %s e %s." % [item_text, player_name, reaction]
-	_remember(npc_id, "gift_received", [npc_id, player_id], desc, relevance, ["afinidade %+.1f" % d_aff], evt, "gift|%s|%s|%d" % [player_id, item_id, day])
-	_relationship_change_memory_player(npc, change, evt)
 	var journal_text := "%s deu %s para %s, que %s do presente." % [player_name, item_text, npc.display_name(), reaction]
+	var interp: String = {"adorou": "Foi um presente muito especial.", "gostou": "Foi gentil da parte dela.", "não gostou": "Não era bem o meu gosto."}.get(reaction, "")
+	_remember(npc_id, "gift_received", [npc_id, player_id], desc, relevance, ["afinidade %+.1f" % d_aff], evt, "gift|%s|%s|%d" % [player_id, item_id, day], {"public": journal_text, "interpretation": interp})
+	_relationship_change_memory_player(npc, change, evt)
 	var entry := journal.add(evt, "gift_received", [player_id, npc_id], journal_text, time_dict())
 	journal_added.emit(entry)
+	var extra := _after_gift(npc, item_id, pref, evt, journal_text)
+	_check_trust_milestone(npc, trust_before, evt)
 	relationship_changed.emit(npc_id, player_id, rel)
 	npc.update_emotion()
 	return {
@@ -575,7 +591,488 @@ func give_gift(npc_id: String, item_id: String, inventory: Inventory) -> Diction
 		"trust_delta": d_trust,
 		"gifts_today": int(rel["gifts_today"]),
 		"event_id": evt,
+		"request_fulfilled": extra.get("request_fulfilled", false),
+		"learned_like": extra.get("learned_like", false),
+		"goal": extra.get("goal", {}),
 	}
+
+
+
+# --- 0.3: conhecimento, objetivos, personalidade e iniciativa ---------------
+
+const OBSERVE_RADIUS := 14.0
+const NEWS_MAX_AGE_DAYS := 2
+const MAX_DRIFT := 0.15
+const DAILY_DRIFT := 0.03
+const INITIATIVE_NPC_COOLDOWN := 480.0
+const INITIATIVE_GLOBAL_COOLDOWN := 180.0
+const INVITE_DURATION := 150.0
+const PROMISE_MARKERS := ["prometo", "prometi", "vou trazer", "vou te trazer", "juro", "pode deixar", "vou te dar", "eu trago", "trago amanha", "trago depois"]
+const AI_ACTIONS := ["pedir_item", "convidar_atividade", "registrar_promessa", "compartilhar_lembranca"]
+
+
+## Opinião subjetiva de quem viveu a interação (separada do fato).
+func _interpretation(owner: NpcState, other: NpcState, kind: String) -> String:
+	var aff := relationships.affinity(owner.id, other.id)
+	match kind:
+		SocialRules.KIND_CHAT:
+			if aff >= 30.0:
+				return "Adora conversar com %s." % other.display_name()
+			if aff < -8.0:
+				return "Ainda acha %s meio difícil." % other.display_name()
+			return "Gostou da conversa."
+		SocialRules.KIND_SHARED:
+			return "Achou o tempo com %s muito divertido." % other.display_name()
+		SocialRules.KIND_DISAGREEMENT:
+			if owner.trait_value("gentileza") >= 0.6:
+				return "Ficou chateada, mas quer resolver as coisas com %s." % other.display_name()
+			return "Acha que %s passou do ponto." % other.display_name()
+		SocialRules.KIND_RECONCILIATION:
+			return "Sente alívio por terem feito as pazes."
+	return ""
+
+
+func _observation_fact(kind: String, names: Array, place_label: String) -> String:
+	var who := " e ".join(names)
+	var verb: String = {
+		SocialRules.KIND_CHAT: "conversando",
+		SocialRules.KIND_SHARED: "se divertindo juntos",
+		SocialRules.KIND_DISAGREEMENT: "discutindo",
+		SocialRules.KIND_RECONCILIATION: "fazendo as pazes",
+	}.get(kind, "juntos")
+	return "Viu %s %s perto d%s %s." % [who, verb, _prep(place_label), place_label]
+
+
+## Moradores acordados e por perto testemunham o acontecimento (conhecimento
+## por observação). Quem não estava lá não fica sabendo automaticamente.
+func _observe(evt: String, kind: String, participants: Array, center: Vector3, public_text: String, place_label: String, fact: String = "") -> Array:
+	var names := []
+	for pid in participants:
+		names.append(npcs[pid].display_name() if npcs.has(pid) else player_name)
+	if fact == "":
+		fact = _observation_fact(kind, names, place_label)
+	var observers := []
+	for npc_id in npc_order:
+		if participants.has(npc_id):
+			continue
+		var npc: NpcState = npcs[npc_id]
+		if npc.is_sleeping() or npc.inside_home:
+			continue
+		if npc.position.distance_to(center) > OBSERVE_RADIUS:
+			continue
+		if memories.knows_event(npc_id, evt):
+			continue
+		var imp := 0.5 if kind == SocialRules.KIND_DISAGREEMENT else 0.35
+		_remember(npc_id, "observation", participants, fact, imp, [], evt, "obs|" + evt, {"origin": "observacao", "public": public_text})
+		observers.append(npc_id)
+	return observers
+
+
+## Quem conta repassa até 1 ou 2 novidades que realmente conhece; quem ouve
+## guarda como RUMOR (origem: comunicação), com a fonte identificada.
+func share_news(teller_id: String, listener_id: String) -> Array:
+	var teller: NpcState = npcs[teller_id]
+	var max_items := 2 if teller.trait_value("sociabilidade") >= 0.7 and teller.trait_value("curiosidade") >= 0.8 else 1
+	var candidates := []
+	for mem in memories.list_for(teller_id):
+		if day - int(mem["day"]) > NEWS_MAX_AGE_DAYS:
+			continue
+		if not mem.has("public_fact") or str(mem.get("event_ref", "")) == "":
+			continue
+		if not (mem["type"] in ["npc_interaction", "observation", "rumor", "community_event", "gift_received", "goal_progress"]):
+			continue
+		if float(mem["relevance"]) < 0.3 or (mem["participants"] as Array).has(listener_id):
+			continue
+		if memories.knows_event(listener_id, str(mem["event_ref"])):
+			continue
+		candidates.append(mem)
+	candidates.sort_custom(func(x, y): return float(x["relevance"]) > float(y["relevance"]))
+	var shared := []
+	for mem in candidates.slice(0, max_items):
+		var parts: Array = (mem["participants"] as Array).duplicate()
+		if not parts.has(teller_id):
+			parts.append(teller_id)
+		var fact := "Ouviu de %s: %s" % [teller.display_name(), str(mem["public_fact"])]
+		_remember(listener_id, "rumor", parts, fact, minf(0.6, float(mem["relevance"]) * 0.7), [], str(mem["event_ref"]), "rumor|" + str(mem["event_ref"]), {
+			"origin": "comunicacao",
+			"public": str(mem["public_fact"]),
+			"source_id": teller_id,
+			"validity": "duvidosa" if mem["type"] == "rumor" else "valida",
+		})
+		shared.append({"teller": teller_id, "listener": listener_id, "event_ref": mem["event_ref"]})
+	return shared
+
+
+## Objetivos: só avançam com acontecimentos reais aceitos pela etapa atual.
+func goal_event(npc_id: String, event_type: String, params: Dictionary) -> Dictionary:
+	if not npcs.has(npc_id):
+		return {}
+	var npc: NpcState = npcs[npc_id]
+	var gid := npc.def.personal_goal_id
+	var steps := GoalLibrary.steps(gid)
+	var st := npc.goal_state
+	var idx := int(st.get("step", 0))
+	if steps.is_empty() or idx >= steps.size():
+		return {}
+	var step: Dictionary = steps[idx]
+	if not GoalLibrary.matches(step, event_type, params):
+		return {}
+	var info := {"advanced": true, "step_done": false, "completed": false, "step_label": step["label"]}
+	var goal_text := npc.def.personal_goal.to_lower()
+	if int(st.get("started_day", 0)) == 0:
+		st["started_day"] = day
+		var evt0 := next_event_id()
+		var txt0 := "%s começou a trabalhar no seu objetivo: %s." % [npc.display_name(), goal_text]
+		_remember(npc_id, "goal_progress", [npc_id], "Começou a trabalhar no objetivo: %s." % goal_text, 0.6, [], evt0, "goal_start|" + gid, {"public": txt0})
+		journal_added.emit(journal.add(evt0, "goal_started", [npc_id], txt0, time_dict()))
+		info["started"] = true
+	var counts: Dictionary = st["counts"]
+	counts[step["id"]] = int(counts.get(step["id"], 0)) + 1
+	var need := int(step.get("count", 1))
+	if int(counts[step["id"]]) >= need:
+		idx += 1
+		st["step"] = idx
+		info["step_done"] = true
+		var evt := next_event_id()
+		if idx >= steps.size():
+			st["completed_day"] = day
+			npc.goal_progress = 1.0
+			info["completed"] = true
+			var txt := "%s alcançou seu objetivo: %s!" % [npc.display_name(), goal_text]
+			_remember(npc_id, "goal_progress", [npc_id], "Realizou o objetivo: %s." % goal_text, 0.95, ["objetivo concluído"], evt, "goal_done|" + gid, {"public": txt, "interpretation": "Um dos dias mais felizes na ilha.", "category": "longo_prazo"})
+			journal_added.emit(journal.add(evt, "goal_completed", [npc_id], txt, time_dict()))
+			npc.mood_modifier = minf(npc.mood_modifier + 0.4, 0.8)
+			evolve_trait(npc, "coragem", 0.03)
+		else:
+			var txt2 := "%s concluiu uma etapa do objetivo: %s." % [npc.display_name(), step["label"]]
+			_remember(npc_id, "goal_progress", [npc_id], "Concluiu a etapa: %s." % step["label"], 0.6, [], evt, "goal_step|%s|%d" % [gid, idx], {"public": txt2})
+			journal_added.emit(journal.add(evt, "goal_milestone", [npc_id], txt2, time_dict()))
+			npc.mood_modifier = minf(npc.mood_modifier + 0.12, 0.8)
+	if not info["completed"]:
+		var cur: Dictionary = GoalLibrary.step_at(gid, idx)
+		var partial := 0.0 if cur.is_empty() else float(counts.get(cur["id"], 0)) / float(cur.get("count", 1))
+		npc.goal_progress = clampf((float(idx) + partial) / float(steps.size()), 0.0, 0.99)
+	npc.update_emotion()
+	goal_changed.emit(npc_id, info)
+	return info
+
+
+func goal_context(npc_id: String) -> Dictionary:
+	var npc: NpcState = npcs[npc_id]
+	var gid := npc.def.personal_goal_id
+	var idx := int(npc.goal_state.get("step", 0))
+	var step := GoalLibrary.step_at(gid, idx)
+	var needs := []
+	for item_id in GoalLibrary.items_for(step):
+		needs.append(ItemDB.display_name(item_id))
+	return {
+		"title": npc.def.personal_goal,
+		"motivation": GoalLibrary.GOALS.get(gid, {}).get("motivation", ""),
+		"current_step": step.get("label", ""),
+		"progress_pct": int(npc.goal_progress * 100.0),
+		"completed": step.is_empty() and int(npc.goal_state.get("completed_day", 0)) > 0,
+		"needs": needs,
+		"plan_note": npc.goal_state.get("plan_note", ""),
+	}
+
+
+func goal_help_items(npc_id: String) -> Array:
+	var npc: NpcState = npcs[npc_id]
+	return GoalLibrary.items_for(GoalLibrary.step_at(npc.def.personal_goal_id, int(npc.goal_state.get("step", 0))))
+
+
+## Evolução gradual e limitada da personalidade (no máximo ±0,15 do traço
+## original e 0,03 por dia por traço).
+func evolve_trait(npc: NpcState, trait_key: String, delta: float) -> float:
+	var base := float(npc.def.traits().get(trait_key, 0.5))
+	var used := float(npc.drift_today.get(trait_key, 0.0))
+	var allowed := maxf(0.0, DAILY_DRIFT - used)
+	var d := clampf(delta, -allowed, allowed)
+	var cur := npc.trait_value(trait_key)
+	var new_value := clampf(cur + d, maxf(0.0, base - MAX_DRIFT), minf(1.0, base + MAX_DRIFT))
+	var applied := new_value - cur
+	if absf(applied) > 0.0:
+		npc.traits[trait_key] = snappedf(new_value, 0.0001)
+		npc.drift_today[trait_key] = used + absf(applied)
+	return applied
+
+
+func _positive_experience(npc: NpcState) -> void:
+	# Moradores tímidos ganham confiança aos poucos com boas experiências.
+	if npc.def.sociabilidade < 0.5:
+		evolve_trait(npc, "sociabilidade", 0.004)
+		evolve_trait(npc, "coragem", 0.002)
+
+
+func _check_new_friendship(a: NpcState, b: NpcState, change: Dictionary, evt: String) -> void:
+	if not (change["changed"] and change["improved"] and change["new_label"] == "amigos"):
+		return
+	var key := "friend:" + SocialRules.pair_key(a.id, b.id)
+	if _pair_cooldowns.has(key):
+		return
+	_pair_cooldowns[key] = now_abs() + 9999999.0
+	journal_added.emit(journal.add(evt + "_amizade", "new_friendship", [a.id, b.id], "%s e %s ficaram amigos." % [a.display_name(), b.display_name()], time_dict()))
+
+
+func _check_trust_milestone(npc: NpcState, before: float, evt: String) -> void:
+	var rel: Dictionary = relationships.get_rel(npc.id, player_id)
+	var after := float(rel["trust"])
+	var marks: Array = rel.get("trust_marks", [])
+	for t in [50.0, 75.0]:
+		var key := "up%d" % int(t)
+		if before < t and after >= t and not marks.has(key):
+			marks.append(key)
+			journal_added.emit(journal.add(evt + "_" + key, "trust_change", [npc.id, player_id], "%s passou a confiar mais em %s." % [npc.display_name(), player_name], time_dict()))
+	if before >= 30.0 and after < 30.0 and not marks.has("down30_%d" % day):
+		marks.append("down30_%d" % day)
+		journal_added.emit(journal.add(evt + "_down", "trust_change", [npc.id, player_id], "%s está com a confiança em %s abalada." % [npc.display_name(), player_name], time_dict()))
+	rel["trust_marks"] = marks
+
+
+func _after_gift(npc: NpcState, item_id: String, pref: int, evt: String, journal_text: String) -> Dictionary:
+	var res := {}
+	npc.gift_counts[item_id] = int(npc.gift_counts.get(item_id, 0)) + 1
+	var item_name := ItemDB.display_name(item_id)
+	if npc.requests.has(item_id) and float(npc.requests[item_id]) >= now_abs():
+		npc.requests.erase(item_id)
+		relationships.apply_event(npc.id, player_id, "request_fulfilled", 3.0, 3.0, evt + "_pedido", time_dict(), false)
+		_remember(npc.id, "gift_received", [npc.id, player_id], "%s trouxe %s, como eu tinha pedido." % [player_name, item_name.to_lower()], 0.7, ["pedido atendido"], evt, "pedido|%s|%d" % [item_id, day], {"interpretation": "%s cumpre o que eu peço." % player_name})
+		res["request_fulfilled"] = true
+	var aff := relationships.affinity(npc.id, player_id)
+	if pref == 0 and int(npc.gift_counts[item_id]) >= 2 and aff >= 15.0 and npc.learned_likes.size() < 3 and not npc.learned_likes.has(item_id):
+		npc.learned_likes.append(item_id)
+		_remember(npc.id, "gift_received", [npc.id, player_id], "Passou a gostar de %s por causa dos presentes de %s." % [item_name.to_lower(), player_name], 0.8, ["nova preferência"], evt, "gosto|" + item_id, {"category": "longo_prazo", "interpretation": "Agora %s me lembra uma amizade." % item_name.to_lower()})
+		res["learned_like"] = true
+	res["goal"] = goal_event(npc.id, "receber_item", {"item_id": item_id})
+	if pref >= 0:
+		npc.pending_initiatives["agradecer_presente"] = {"detail": item_name, "event_ref": evt, "from": now_abs() + 120.0, "until": now_abs() + 1440.0}
+		_positive_experience(npc)
+	_observe(evt, "gift", [npc.id], npc.position, journal_text, "", "Viu %s dar %s para %s." % [player_name, ItemDB.with_article(item_id).to_lower(), npc.display_name()])
+	return res
+
+
+## Emoção validada vinda do modelo: efeito pequeno e limitado no humor.
+func apply_ai_emotion(npc_id: String, emotion: String) -> void:
+	if not npcs.has(npc_id):
+		return
+	var npc: NpcState = npcs[npc_id]
+	var d: float = {"alegre": 0.05, "animada": 0.06, "triste": -0.05, "irritada": -0.04, "envergonhada": -0.01}.get(emotion, 0.0)
+	if d != 0.0:
+		npc.mood_modifier = clampf(npc.mood_modifier + d, -0.4, 0.4)
+		npc.update_emotion()
+
+
+## Ações sugeridas pela IA: o simulador confere permissão e pré-condições e só
+## então executa. Nada acontece no mundo sem passar por aqui.
+func apply_ai_action(npc_id: String, action: String, params: Dictionary, player_message: String = "") -> Dictionary:
+	if not npcs.has(npc_id):
+		return {"applied": false, "reason": "morador inexistente"}
+	if not (action in AI_ACTIONS):
+		return {"applied": false, "reason": "ação não existe no jogo"}
+	var npc: NpcState = npcs[npc_id]
+	match action:
+		"pedir_item":
+			var item_id := str(params.get("item_id", ""))
+			if not ItemDB.exists(item_id):
+				return {"applied": false, "reason": "item inexistente"}
+			if not (goal_help_items(npc_id).has(item_id) or npc.preference_for(item_id) > 0):
+				return {"applied": false, "reason": "pedido sem motivo"}
+			if npc.requests.has(item_id) and float(npc.requests[item_id]) >= now_abs():
+				return {"applied": false, "reason": "já pediu este item"}
+			npc.requests[item_id] = now_abs() + 2880.0
+			_remember(npc_id, "important_conversation", [npc_id, player_id], "Pediu %s para %s." % [ItemDB.with_article(item_id).to_lower(), player_name], 0.4, [], next_event_id(), "pede|%s|%d" % [item_id, day], {"category": "recente"})
+			return {"applied": true, "effect": "%s pediu: %s" % [npc.display_name(), ItemDB.display_name(item_id)]}
+		"convidar_atividade":
+			var place := str(params.get("lugar", ""))
+			if not Places.SHARED_ACTIVITIES.has(place):
+				return {"applied": false, "reason": "lugar sem atividade"}
+			var hour := minute / 60.0
+			if hour < 7.0 or hour > 19.5:
+				return {"applied": false, "reason": "fora do horário"}
+			if not npc.invitation.is_empty():
+				return {"applied": false, "reason": "já há um convite"}
+			if npc.is_sleeping() or npc.inside_home:
+				return {"applied": false, "reason": "morador indisponível"}
+			start_invitation(npc_id, place)
+			return {"applied": true, "effect": "%s te convidou para %s" % [npc.display_name(), Places.poi_label(place)]}
+		"registrar_promessa":
+			var desc := str(params.get("descricao", "")).strip_edges().substr(0, 120)
+			var folded := MemorySystem._fold(player_message)
+			var promised := false
+			for marker in PROMISE_MARKERS:
+				if folded.contains(marker):
+					promised = true
+					break
+			if not promised or desc.length() < 4:
+				return {"applied": false, "reason": "a jogadora não prometeu nada"}
+			if not npc.cooldown_ready("promise", now_abs()):
+				return {"applied": false, "reason": "promessa já registrada hoje"}
+			npc.set_cooldown("promise", now_abs(), 1440.0)
+			var evt := next_event_id()
+			var text := "%s prometeu a %s: %s." % [player_name, npc.display_name(), desc.trim_suffix(".")]
+			_remember(npc_id, "promise", [npc_id, player_id], "%s prometeu: %s." % [player_name, desc.trim_suffix(".")], 0.7, [], evt, "promessa|%d" % day, {"origin": "jogadora", "public": text})
+			journal_added.emit(journal.add(evt, "promise", [player_id, npc_id], text, time_dict()))
+			return {"applied": true, "effect": "Promessa anotada"}
+		"compartilhar_lembranca":
+			var mid := str(params.get("memoria_id", ""))
+			if memories.get_memory(npc_id, mid).is_empty():
+				return {"applied": false, "reason": "lembrança inexistente"}
+			memories.recall(npc_id, [mid])
+			return {"applied": true, "effect": ""}
+	return {"applied": false, "reason": "ação desconhecida"}
+
+
+## Ações que podem ser sugeridas agora (enviadas ao modelo como permissões).
+func allowed_ai_actions(npc_id: String) -> Dictionary:
+	var npc: NpcState = npcs[npc_id]
+	var actions := ["registrar_promessa", "compartilhar_lembranca"]
+	var items := goal_help_items(npc_id)
+	for item_id in ItemDB.ITEMS:
+		if npc.preference_for(item_id) > 0 and not items.has(item_id):
+			items.append(item_id)
+	if not items.is_empty():
+		actions.append("pedir_item")
+	var places := []
+	var hour := minute / 60.0
+	if npc.invitation.is_empty() and hour >= 7.0 and hour <= 19.5:
+		for place in [npc.def.favorite_place, npc.def.work_place, "praca", "praia_sul", "doca"]:
+			if Places.SHARED_ACTIVITIES.has(place) and not places.has(place):
+				places.append(place)
+		if not places.is_empty():
+			actions.append("convidar_atividade")
+	var place_labels := {}
+	for pl in places:
+		place_labels[pl] = Places.poi_label(pl)
+	var item_labels := {}
+	for it in items:
+		item_labels[it] = ItemDB.display_name(it)
+	return {"actions": actions, "items": items, "places": places, "place_labels": place_labels, "item_labels": item_labels}
+
+
+## Motivo para o morador procurar a jogadora por iniciativa própria.
+func initiative_candidate(npc_id: String) -> Dictionary:
+	var npc: NpcState = npcs[npc_id]
+	var now := now_abs()
+	if npc.is_sleeping() or npc.inside_home or npc.partner_id != "" or not npc.invitation.is_empty():
+		return {}
+	if not npc.cooldown_ready("initiative", now) or now < float(_pair_cooldowns.get("initiative_global", -INF)):
+		return {}
+	var thanks: Dictionary = npc.pending_initiatives.get("agradecer_presente", {})
+	if not thanks.is_empty() and now >= float(thanks["from"]) and now <= float(thanks["until"]):
+		return {"reason": "agradecer_presente", "detail": thanks["detail"], "event_ref": thanks["event_ref"]}
+	var aff := relationships.affinity(npc_id, player_id)
+	var help_items := goal_help_items(npc_id)
+	if not help_items.is_empty() and npc.cooldown_ready("ask_help", now) and aff >= 0.0:
+		var names := []
+		for it in help_items.slice(0, 3):
+			names.append(ItemDB.display_name(it))
+		var ctx := goal_context(npc_id)
+		return {"reason": "pedir_ajuda", "detail": "%s; precisa de: %s" % [ctx["current_step"], ", ".join(names)], "items": help_items}
+	var list := memories.list_for(npc_id).duplicate()
+	list.reverse()
+	for mem in list:
+		if day - int(mem["day"]) > 1:
+			break
+		if not mem.has("public_fact") or float(mem["relevance"]) < 0.5:
+			continue
+		if npc.told_player.has(str(mem["event_ref"])) or (mem["participants"] as Array).has(player_id):
+			continue
+		if mem["type"] in ["gift_received", "important_conversation", "player_conversation", "promise"]:
+			continue
+		var detail := str(mem["public_fact"])
+		if mem["type"] == "rumor":
+			detail = "(rumor, ouviu de %s) %s" % [npcs[mem["source_id"]].display_name() if npcs.has(mem.get("source_id", "")) else "alguém", detail]
+		return {"reason": "contar_novidade", "detail": detail, "event_ref": mem["event_ref"], "is_rumor": mem["type"] == "rumor"}
+	var hour := minute / 60.0
+	if aff >= 25.0 and hour >= 8.0 and hour <= 18.5 and npc.cooldown_ready("invite", now):
+		var place := npc.def.favorite_place if Places.SHARED_ACTIVITIES.has(npc.def.favorite_place) else "praca"
+		return {"reason": "convidar", "detail": Places.poi_label(place), "place": place}
+	var rel: Dictionary = relationships.get_rel(npc_id, player_id)
+	if int(rel["interactions"]) <= 2 and npc.trait_value("curiosidade") >= 0.6 and npc.cooldown_ready("question", now):
+		return {"reason": "pergunta", "detail": "quer conhecer melhor %s" % player_name}
+	return {}
+
+
+func mark_initiative(npc_id: String, cand: Dictionary, outcome: String) -> void:
+	var npc: NpcState = npcs[npc_id]
+	var now := now_abs()
+	npc.set_cooldown("initiative", now, INITIATIVE_NPC_COOLDOWN)
+	_pair_cooldowns["initiative_global"] = now + INITIATIVE_GLOBAL_COOLDOWN
+	match str(cand.get("reason", "")):
+		"agradecer_presente":
+			npc.pending_initiatives.erase("agradecer_presente")
+		"pedir_ajuda":
+			npc.set_cooldown("ask_help", now, 1440.0)
+		"convidar":
+			npc.set_cooldown("invite", now, 1440.0)
+		"pergunta":
+			npc.set_cooldown("question", now, 2880.0)
+		"contar_novidade":
+			if outcome == "accepted":
+				npc.told_player.append(str(cand.get("event_ref", "")))
+				while npc.told_player.size() > 40:
+					npc.told_player.pop_front()
+	if outcome == "ignored":
+		_remember(npc_id, "player_conversation", [npc_id, player_id], "Tentou falar com %s, mas ela seguiu o caminho." % player_name, 0.2, [], next_event_id(), "ignorou|%d" % day)
+
+
+func start_invitation(npc_id: String, place: String) -> void:
+	var npc: NpcState = npcs[npc_id]
+	npc.invitation = {"place": place, "until": now_abs() + INVITE_DURATION, "started": now_abs()}
+	npc.set_cooldown("invite", now_abs(), 1440.0)
+	_remember(npc_id, "important_conversation", [npc_id, player_id], "Convidou %s para ir ao %s." % [player_name, Places.poi_label(place)], 0.45, [], next_event_id(), "convite|%d" % day, {"category": "recente"})
+
+
+## A jogadora apareceu no lugar do convite: atividade compartilhada real.
+func complete_invitation(npc_id: String) -> Dictionary:
+	var npc: NpcState = npcs[npc_id]
+	if npc.invitation.is_empty():
+		return {}
+	var place: String = npc.invitation["place"]
+	npc.invitation = {}
+	var what: String = Places.SHARED_ACTIVITIES.get(place, "passaram um tempo juntos")
+	var evt := next_event_id()
+	var text := "%s e %s %s." % [player_name, npc.display_name(), what]
+	var trust_before := float(relationships.get_rel(npc_id, player_id)["trust"])
+	var change := relationships.apply_event(npc_id, player_id, "invitation", 5.0, 3.0, evt, time_dict())
+	_remember(npc_id, "npc_interaction", [npc_id, player_id], "%s com %s." % [what.capitalize(), player_name], 0.7, ["convite aceito"], evt, "convite_ok|%d" % day, {"public": text, "interpretation": "%s aceitou o meu convite!" % player_name})
+	journal_added.emit(journal.add(evt, "invitation", [player_id, npc_id], text, time_dict()))
+	_relationship_change_memory_player(npc, change, evt)
+	_check_trust_milestone(npc, trust_before, evt)
+	npc.add_need("social", 15.0)
+	npc.add_need("diversao", 15.0)
+	npc.mood_modifier = minf(npc.mood_modifier + 0.2, 0.8)
+	npc.update_emotion()
+	_positive_experience(npc)
+	var goal := goal_event(npc_id, "atividade_compartilhada", {"place": place, "with": player_id})
+	return {"text": text, "event_id": evt, "goal": goal}
+
+
+func expire_invitations() -> Array:
+	var expired := []
+	for npc_id in npc_order:
+		var npc: NpcState = npcs[npc_id]
+		if npc.invitation.is_empty() or now_abs() <= float(npc.invitation["until"]):
+			continue
+		var place: String = npc.invitation["place"]
+		npc.invitation = {}
+		npc.mood_modifier = maxf(npc.mood_modifier - 0.05, -0.4)
+		_remember(npc_id, "player_conversation", [npc_id, player_id], "Esperou %s no %s, mas ela não apareceu." % [player_name, Places.poi_label(place)], 0.3, [], next_event_id(), "convite_perdido|%d" % day)
+		expired.append(npc_id)
+	return expired
+
+
+func on_new_day() -> void:
+	memories.expire(day)
+	for npc_id in npc_order:
+		var npc: NpcState = npcs[npc_id]
+		npc.drift_today.clear()
+		for item_id in npc.requests.keys():
+			if float(npc.requests[item_id]) < now_abs():
+				npc.requests.erase(item_id)
+		var thanks: Dictionary = npc.pending_initiatives.get("agradecer_presente", {})
+		if not thanks.is_empty() and float(thanks["until"]) < now_abs():
+			npc.pending_initiatives.erase("agradecer_presente")
 
 
 # --- persistência -----------------------------------------------------------

@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.3.0 — Living Minds: inteligência, memória e vida social
+
+### Adicionado
+- **Orquestrador central de IA** no backend: um modelo compartilhado pelos oito
+  moradores, fila com prioridade (conversa da jogadora primeiro), uma inferência
+  por vez, deduplicação, cancelamento, descarte de pedidos obsoletos, timeout,
+  limite de contexto e métricas (latência, tokens, erros).
+- **Saídas estruturadas** do Ollama com JSON Schema, validadas com Pydantic
+  (fala, emoção, intenção, memórias citadas, ação sugerida e parâmetros).
+- **ContextBuilder**: o modelo recebe só o que o morador sabe, com fatos,
+  opiniões e rumores separados e permissões calculadas pelo simulador.
+- **Perfis conversacionais** dos oito moradores (vocabulário, temperamento,
+  valores, assuntos, limites, reações, estilo de amizade).
+- **Memória avançada**: categorias (recente, episódica, social, longo prazo),
+  origem do conhecimento, fato × interpretação, validade, consolidação, promoção
+  e expiração.
+- **Conhecimento limitado**: por participação, observação (até 14 m) e
+  comunicação (rumores com fonte).
+- **Objetivos em etapas** que só avançam por acontecimentos reais, com marcos e
+  conclusão no Diário; o modelo pode escolher entre planos válidos.
+- **Evolução gradual da personalidade** com limites e **gostos aprendidos**.
+- **Ações autorizadas**: pedir item, convidar para atividade, registrar promessa
+  e compartilhar lembrança — sempre validadas pelo simulador.
+- **Iniciativa dos moradores**: agradecer, pedir ajuda, contar novidades,
+  convidar e perguntar, com prioridade e cooldowns; a jogadora pode ignorar.
+- **Falas entre moradores** acima da cabeça quando a jogadora está por perto.
+- Diálogo: cancelar resposta, indicador discreto de diálogo clássico, emoção
+  validada no rosto e no painel, avisos amigáveis.
+- Diário: novas amizades, confiança, objetivos (início, etapa, conclusão),
+  promessas e convites.
+- Painel F3: modelo, fila, inferência em andamento, latência, tokens, erros e
+  memórias por morador.
+- `start-all.bat` e verificação do serviço MongoDB e do Ollama/modelo nos scripts.
+- Script de integração real (`game/tests/integracao/ia_real.tscn`) e benchmark
+  (`backend/tools/benchmark_ollama.py`).
+
+### Alterado
+- Diálogos clássicos agora respeitam o conhecimento do morador (antes liam o
+  Diário global e não sabiam dizer “não vi”).
+- O contexto enviado ao modelo não inclui mais o Diário da Ilha.
+- `/health` informa se o modelo está instalado; o jogo só usa IA com o modelo presente.
+
+### Compatibilidade
+- Saves da 0.1 e 0.2 carregam: os campos novos de memória, objetivos e
+  personalidade são opcionais e preenchidos na carga.
+
 ## 0.2.0 — Refino visual, Blender e identidade artística
 
 ### Adicionado

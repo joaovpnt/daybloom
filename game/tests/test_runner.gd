@@ -13,6 +13,8 @@ const TEST_FILES := [
 	"res://tests/test_world.gd",
 	"res://tests/test_assets.gd",
 	"res://tests/test_world_visual.gd",
+	"res://tests/test_living_minds.gd",
+	"res://tests/test_living_world.gd",
 ]
 
 

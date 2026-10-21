@@ -154,6 +154,58 @@ function Backend-Ativo {
     } catch { return $null }
 }
 
+function Url-Ollama { if ($env:DAYBLOOM_OLLAMA_URL) { return $env:DAYBLOOM_OLLAMA_URL.TrimEnd("/") } return "http://127.0.0.1:11434" }
+function Modelo-Ollama { if ($env:DAYBLOOM_OLLAMA_MODEL) { return $env:DAYBLOOM_OLLAMA_MODEL } return "qwen3:4b" }
+
+## Verifica o serviço do MongoDB (sem alterar nada: iniciar um serviço exige administrador).
+function Verificar-MongoServico {
+    $svc = Get-Service -Name "MongoDB" -ErrorAction SilentlyContinue
+    if (-not $svc) {
+        $bins = Get-ChildItem "C:\Program Files\MongoDB\Server\*\bin\mongod.exe" -ErrorAction SilentlyContinue
+        if ($bins) {
+            Escrever "MongoDB Server instalado ($($bins[0].Directory.Parent.Name)), mas sem o serviço 'MongoDB'. Inicie o mongod manualmente." "Yellow"
+        } else {
+            Escrever "MongoDB Community Server não encontrado. (O MongoDB Compass sozinho não é o servidor.)" "Red"
+            Escrever "Instale em https://www.mongodb.com/try/download/community para salvar partidas." "Yellow"
+        }
+        return $false
+    }
+    if ($svc.Status -ne "Running") {
+        Escrever "O serviço MongoDB está '$($svc.Status)'. Para iniciá-lo, abra o PowerShell como administrador e rode: Start-Service MongoDB" "Yellow"
+        return $false
+    }
+    Escrever "Serviço MongoDB: em execução" "Green"
+    return $true
+}
+
+## Verifica o Ollama e o modelo. Abre o aplicativo do Ollama (nível de usuário) se ele estiver instalado e parado.
+function Verificar-Ollama {
+    $url = Url-Ollama
+    $modelo = Modelo-Ollama
+    $tags = $null
+    try { $tags = Invoke-RestMethod -Uri "$url/api/tags" -TimeoutSec 2 } catch { }
+    if (-not $tags) {
+        $app = Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama app.exe"
+        if (Test-Path $app) {
+            Escrever "Iniciando o Ollama..." "Yellow"
+            Start-Process -FilePath $app -WindowStyle Hidden | Out-Null
+            for ($i = 0; $i -lt 20 -and -not $tags; $i++) { Start-Sleep -Milliseconds 500; try { $tags = Invoke-RestMethod -Uri "$url/api/tags" -TimeoutSec 2 } catch { } }
+        }
+    }
+    if (-not $tags) {
+        Escrever "Ollama indisponível: as conversas usarão os diálogos clássicos. (Opcional: https://ollama.com)" "Yellow"
+        return $false
+    }
+    $nomes = @($tags.models | ForEach-Object { $_.name })
+    $alvo = if ($modelo.Contains(":")) { $modelo } else { "$($modelo):latest" }
+    if (-not ($nomes -contains $alvo -or $nomes -contains $modelo)) {
+        Escrever "Ollama ativo, mas o modelo $modelo não está instalado. Rode: ollama pull $modelo" "Yellow"
+        return $false
+    }
+    Escrever "Ollama ativo com o modelo $modelo" "Green"
+    return $true
+}
+
 function Cmd-Instalar {
     Titulo "Instalando dependências Python"
     $py = Encontrar-Python
@@ -214,6 +266,9 @@ function Cmd-Jogo {
     Ler-Env
     $g = Exigir-Godot
     Importar-Projeto $g
+    Titulo "Serviços locais"
+    Verificar-MongoServico | Out-Null
+    Verificar-Ollama | Out-Null
     $processo = $null
     $saude = Backend-Ativo
     if (-not $saude) {
@@ -226,7 +281,7 @@ function Cmd-Jogo {
     }
     if ($saude) {
         $m = if ($saude.mongo.ok) { "MongoDB conectado" } else { "MongoDB indisponível" }
-        $o = if ($saude.ollama.reachable) { "Ollama ativo" } else { "Ollama indisponível (diálogos clássicos)" }
+        $o = if ($saude.ollama.reachable -and $saude.ollama.model_installed) { "IA local ativa ($($saude.ollama.model))" } elseif ($saude.ollama.reachable) { "Ollama sem o modelo (diálogos clássicos)" } else { "Ollama indisponível (diálogos clássicos)" }
         Escrever "Backend ativo: $m · $o" "Green"
     }
     Escrever "Abrindo o Daybloom..."
@@ -281,7 +336,9 @@ function Cmd-Verificar {
     if (Test-Path $VenvPython) { Escrever "Ambiente virtual: OK" "Green" } else { Escrever "Ambiente virtual: ausente" "Yellow" }
     $g = Encontrar-Godot
     if ($g) { Escrever "Godot: $g" "Green" } else { Escrever "Godot: não encontrado" "Red" }
+    Verificar-MongoServico | Out-Null
     if (Test-Path $VenvPython) { Testar-Mongo | Out-Null }
+    Verificar-Ollama | Out-Null
     $s = Backend-Ativo
     if ($s) { Escrever "Backend: ativo na porta $(Porta-Backend)" "Green" } else { Escrever "Backend: desligado" "Yellow" }
 }

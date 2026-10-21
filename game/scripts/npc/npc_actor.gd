@@ -4,7 +4,7 @@ extends CharacterBody3D
 ## AI como uma máquina de estados (ocioso → andando → executando → ...),
 ## navega pelo NavigationAgent3D e detecta quando fica preso.
 
-enum Phase { NEEDS_DECISION, MOVING, PERFORMING, SOCIAL, TALKING_PLAYER, INSIDE_HOME }
+enum Phase { NEEDS_DECISION, MOVING, PERFORMING, SOCIAL, TALKING_PLAYER, INSIDE_HOME, APPROACHING_PLAYER, WAITING_PLAYER }
 
 const WALK_SPEED := 2.7
 const ARRIVE_DISTANCE := 0.7
@@ -18,7 +18,11 @@ var agent: NavigationAgent3D
 var visual: CharacterVisual
 var name_label: Label3D
 var emote: EmoteBubble
+var speech: Label3D
 var label_height: float = 1.6
+## Iniciativa em andamento (0.3): o morador foi procurar a jogadora.
+var initiative: Dictionary = {}
+var _speech_timer := 0.0
 
 var phase: Phase = Phase.NEEDS_DECISION
 var action: Dictionary = {}
@@ -78,6 +82,20 @@ func setup(p_npc: NpcState, p_sim: Simulation, p_director: Node) -> void:
 	emote = EmoteBubble.new()
 	emote.position = Vector3(0.0, label_height + 0.7, 0)
 	add_child(emote)
+	speech = Label3D.new()
+	speech.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	speech.font = UiTheme.font_regular()
+	speech.font_size = 34
+	speech.pixel_size = 0.0038
+	speech.outline_size = 12
+	speech.width = 520.0
+	speech.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	speech.modulate = Color(0.29, 0.23, 0.17)
+	speech.outline_modulate = Color(1, 0.98, 0.93)
+	speech.position = Vector3(0, label_height + 0.55, 0)
+	speech.visible = false
+	speech.no_depth_test = true
+	add_child(speech)
 	add_to_group("interactable")
 	add_to_group("npc_actor")
 	global_position = npc.position
@@ -172,6 +190,18 @@ func _physics_process(delta: float) -> void:
 			return
 		Phase.NEEDS_DECISION:
 			velocity = Vector3.ZERO
+		Phase.APPROACHING_PLAYER:
+			_process_approach(delta)
+		Phase.WAITING_PLAYER:
+			velocity = Vector3.ZERO
+			if talk_partner:
+				var dw := talk_partner.global_position - global_position
+				rotation.y = lerp_angle(rotation.y, atan2(dw.x, dw.z), 0.15)
+	if _speech_timer > 0.0:
+		_speech_timer -= delta
+		if _speech_timer <= 0.0:
+			speech.visible = false
+			emote.visible = true
 	_animate(delta)
 	npc.position = global_position
 	npc.rotation_y = rotation.y
@@ -316,6 +346,98 @@ func _process_social(_delta: float) -> void:
 			rotation.y = lerp_angle(rotation.y, atan2(d.x, d.z), 0.2)
 
 
+# --- 0.3: iniciativa, convite e falas ------------------------------------------
+
+## Vai até a jogadora para puxar assunto (não bloqueia a jogadora).
+func approach_player(player: Node3D, cand: Dictionary) -> void:
+	initiative = cand.duplicate()
+	talk_partner = player
+	phase = Phase.APPROACHING_PLAYER
+	_travel_time = 0.0
+	_retarget_timer = 0.0
+	agent.target_position = player.global_position
+	sim.set_npc_state(npc.id, "WALKING", "indo falar com " + sim.player_name)
+	emote.flash("question", 1.5)
+	_update_label()
+
+
+func _process_approach(delta: float) -> void:
+	if talk_partner == null or not is_instance_valid(talk_partner):
+		cancel_initiative()
+		return
+	_travel_time += delta
+	_retarget_timer -= delta
+	if _retarget_timer <= 0.0:
+		_retarget_timer = 0.5
+		agent.target_position = talk_partner.global_position
+	var dist := _flat_distance(global_position, talk_partner.global_position)
+	if dist <= 2.1:
+		phase = Phase.WAITING_PLAYER
+		velocity = Vector3.ZERO
+		sim.set_npc_state(npc.id, "IDLE", "quer falar com " + sim.player_name)
+		emote.set_persistent("question")
+		_update_label_text_only()
+		return
+	if _travel_time > 25.0:
+		cancel_initiative()
+		return
+	var next := agent.get_next_path_position()
+	var dir := next - global_position
+	dir.y = 0.0
+	if dir.length() > 0.05:
+		dir = dir.normalized()
+		velocity.x = dir.x * WALK_SPEED * 1.1
+		velocity.z = dir.z * WALK_SPEED * 1.1
+		rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), minf(1.0, delta * 8.0))
+	velocity.y = -0.5 if is_on_floor() else velocity.y - 20.0 * delta
+	move_and_slide()
+
+
+func is_waiting_for_player() -> bool:
+	return phase == Phase.WAITING_PLAYER or phase == Phase.APPROACHING_PLAYER
+
+
+## Desiste da iniciativa (a jogadora ignorou ou se afastou).
+func cancel_initiative() -> void:
+	initiative = {}
+	if phase in [Phase.APPROACHING_PLAYER, Phase.WAITING_PLAYER]:
+		talk_partner = null
+		phase = Phase.NEEDS_DECISION
+		velocity = Vector3.ZERO
+		sim.set_npc_state(npc.id, "IDLE", "parado")
+	emote.set_persistent("")
+	_update_label()
+
+
+## Vai ao lugar do convite e espera a jogadora.
+func go_to_invite(place: String) -> void:
+	var offset := Vector3(randf_range(-1.2, 1.2), 0, randf_range(0.8, 1.6))
+	start_action({
+		"kind": "invite",
+		"place": place,
+		"target_pos": Places.poi_pos(place) + offset,
+		"arrive_state": "LEISURE",
+		"activity": "esperando %s" % sim.player_name,
+		"duration": Simulation.INVITE_DURATION,
+	})
+
+
+## Mostra uma fala curta acima da cabeça.
+func say(text: String, seconds: float = 4.5) -> void:
+	if not visible:
+		return
+	speech.text = text
+	speech.visible = true
+	emote.visible = false  # o balão de emoção não cobre a fala
+	_speech_timer = seconds
+	visual.talking = true
+
+
+func _update_label_text_only() -> void:
+	if name_label:
+		name_label.text = npc.display_name()
+
+
 func _process_talking(_delta: float) -> void:
 	velocity = Vector3.ZERO
 	if npc.partner_id != sim.player_id:
@@ -404,6 +526,8 @@ func _update_label() -> void:
 				style = "music"
 			_:
 				style = "chat"
+	elif is_waiting_for_player():
+		style = "question"
 	elif npc.state == "LEISURE":
 		style = "music"
 	elif npc.mood == "triste" or npc.mood.begins_with("chatead"):
@@ -461,6 +585,38 @@ func react(kind: String) -> void:
 			visual.play_once("surprised")
 			visual.flash_expression("happy", 2.0)
 			emote.flash("surprise", 1.0)
+		# Emoções validadas da IA (0.3): expressão coerente, sem contradições.
+		"emotion_alegre", "emotion_animada":
+			if not visual.is_reacting():
+				visual.play_once("happy")
+			visual.flash_expression("happy", 3.0)
+		"emotion_triste", "emotion_envergonhada":
+			visual.flash_expression("sad", 3.5)
+		"emotion_surpresa":
+			visual.play_once("surprised")
+			visual.flash_expression("surprised", 2.0)
+			emote.flash("surprise", 1.0)
+		"emotion_irritada":
+			visual.flash_expression("angry", 3.0)
+		"emotion_pensativa":
+			emote.flash("question", 1.5)
+		"emotion_neutra":
+			pass
+		"goal_step":
+			visual.play_once("happy")
+			visual.flash_expression("happy", 2.5)
+			emote.flash("done", 2.0)
+		"goal_completed":
+			visual.play_once("happy")
+			visual.flash_expression("happy", 5.0)
+			emote.flash("love", 4.0)
+		"invite_missed":
+			visual.flash_expression("sad", 3.0)
+			emote.flash("sad", 2.0)
+		"invite_done":
+			visual.play_once("happy")
+			visual.flash_expression("happy", 3.0)
+			emote.flash("music", 2.5)
 
 
 func refresh_label() -> void:
@@ -469,7 +625,7 @@ func refresh_label() -> void:
 
 func _animate(_delta: float) -> void:
 	var speed := Vector2(velocity.x, velocity.z).length()
-	visual.talking = phase == Phase.SOCIAL or phase == Phase.TALKING_PLAYER
+	visual.talking = phase == Phase.SOCIAL or phase == Phase.TALKING_PLAYER or _speech_timer > 0.0
 	if speed > 0.2:
 		visual.play("walk", clampf(speed / WALK_SPEED, 0.6, 1.3))
 	elif visual.talking:
