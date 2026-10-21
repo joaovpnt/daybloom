@@ -49,9 +49,10 @@ func test_contexto_do_modelo_limitado() -> void:
 	for i in range(30):
 		sim.memories.add_memory("bento", "important_conversation", ["bento", sim.player_id], "Conversa %d sobre música" % i, 0.5, [], "e%d" % i, {"day": 1, "minute": float(i)}, "k%d" % i)
 	var ctx := DialogueContext.build(sim.npcs["bento"], sim, "Vamos falar de música?")
-	assert_true((ctx["memories"] as Array).size() <= 5, "no máximo 5 memórias")
-	assert_true((ctx["recent_facts"] as Array).size() <= 6, "no máximo 6 fatos")
-	for key in ["npc", "emotion", "relationship", "time", "memories", "recent_facts"]:
+	assert_true((ctx["memories"] as Array).size() <= ContextBuilder.MAX_MEMORIES, "memórias limitadas")
+	assert_true((ctx["known_events"] as Array).size() <= ContextBuilder.MAX_EVENTS, "acontecimentos limitados")
+	assert_false(ctx.has("recent_facts"), "o Diário global não é enviado ao modelo (0.3)")
+	for key in ["npc", "emotion", "relationship", "time", "memories", "known_events", "goal", "allowed", "location"]:
 		assert_true(ctx.has(key), "contexto contém %s" % key)
 	assert_eq(ctx["npc"]["name"], "Bento")
 
