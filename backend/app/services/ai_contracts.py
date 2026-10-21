@@ -55,6 +55,29 @@ _QUEBRA_PERSONAGEM = [
     "system:",
 ]
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+# Emojis e pictogramas (a fonte do jogo não os desenha e destoam do texto).
+_EMOJI_RE = re.compile(
+    "[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U0001F900-\U0001F9FF\U00002B00-\U00002BFF\uFE0F\u200D]+"
+)
+# Ações de roleplay entre asteriscos (*sorri*) e comentários meta entre parênteses.
+_ASTERISCOS_RE = re.compile(r"\*[^*]{1,80}\*")
+_REFS_RE = re.compile(r"\s*[\(\[]\s*m\d{1,2}\s*[\)\]]", re.IGNORECASE)
+_FALA_TRUNCADA_RE = re.compile(r'"fala"\s*:\s*"((?:[^"\\]|\\.)*)', re.DOTALL)
+_META_PAREN_RE = re.compile(
+    r"\((?:[^()]*\b(?:pontua|confian|sussurr|risos?|sorri|pensando|nota|obs|n[aã]o sei o que)[^()]*)\)",
+    re.IGNORECASE,
+)
+# Marcas de "ouvi dizer": só valem se o morador conhecer algum rumor.
+# Marcas de quem admite não saber (frases assim podem citar qualquer morador).
+_NAO_SEI_RE = re.compile(
+    r"\b(n[aã]o sei|n[aã]o vi|n[aã]o ouvi|n[aã]o fiquei sabendo|n[aã]o fa[cç]o ideia|n[aã]o tenho certeza|"
+    r"nada sobre|n[aã]o sabia|n[aã]o estava l[aá]|n[aã]o me contaram|sei l[aá])\b",
+    re.IGNORECASE,
+)
+_BOATO_RE = re.compile(
+    r"\b(ouvi dizer|ouvi falar|me contaram|me disseram|disseram que|dizem que|fiquei sabendo|andam dizendo|soube que)\b",
+    re.IGNORECASE,
+)
 
 
 def _norm(text: str) -> str:
@@ -108,14 +131,18 @@ def json_schema_resposta() -> dict[str, Any]:
     }
 
 
-def json_schema_falas_entre_moradores() -> dict[str, Any]:
+def chaves_falas(a_id: str, b_id: str) -> tuple[str, str]:
+    a = re.sub(r"[^a-z0-9_]", "", _norm(a_id)) or "a"
+    b = re.sub(r"[^a-z0-9_]", "", _norm(b_id)) or "b"
+    return f"fala_de_{a}", (f"fala_de_{b}" if b != a else f"fala_de_{b}_2")
+
+
+def json_schema_falas_entre_moradores(a_id: str = "a", b_id: str = "b") -> dict[str, Any]:
+    ka, kb = chaves_falas(a_id, b_id)
     return {
         "type": "object",
-        "properties": {
-            "fala_a": {"type": "string", "maxLength": 140},
-            "fala_b": {"type": "string", "maxLength": 140},
-        },
-        "required": ["fala_a", "fala_b"],
+        "properties": {ka: {"type": "string", "maxLength": 140}, kb: {"type": "string", "maxLength": 140}},
+        "required": [ka, kb],
     }
 
 
@@ -138,6 +165,11 @@ class Permissoes:
     itens: list[str] = field(default_factory=list)
     lugares: list[str] = field(default_factory=list)
     memorias: dict[str, str] = field(default_factory=dict)  # ref curta -> id real
+    conhece_rumores: bool = False
+    # Moradores citados na conversa sobre os quais este morador não sabe nada.
+    desconhecidos: list[str] = field(default_factory=list)
+    # Moradores citados que este morador viu ou com quem esteve há pouco.
+    testemunhados: list[str] = field(default_factory=list)
 
     @classmethod
     def from_context(cls, ctx: dict[str, Any]) -> "Permissoes":
@@ -146,7 +178,24 @@ class Permissoes:
         for mem in ctx.get("memories") or []:
             if isinstance(mem, dict) and mem.get("ref") and mem.get("id"):
                 refs[str(mem["ref"])] = str(mem["id"])
+        rumores = any(
+            isinstance(e, dict) and e.get("is_rumor")
+            for e in list(ctx.get("known_events") or []) + list(ctx.get("memories") or [])
+        )
+        desconhecidos = [
+            _norm(str(r.get("name", ""))).split(" ")[-1]
+            for r in (ctx.get("related_npcs") or [])
+            if isinstance(r, dict) and r.get("name") and not r.get("known_facts")
+        ]
+        testemunhados = [
+            _norm(str(r.get("name", ""))).split(" ")[-1]
+            for r in (ctx.get("related_npcs") or [])
+            if isinstance(r, dict) and r.get("name") and r.get("witnessed")
+        ]
         return cls(
+            testemunhados=[t for t in testemunhados if len(t) >= 3],
+            desconhecidos=[d for d in desconhecidos if len(d) >= 3],
+            conhece_rumores=rumores,
             acoes=[a for a in (allowed.get("actions") or []) if a in ACOES],
             itens=[str(i) for i in (allowed.get("items") or [])][:40],
             lugares=[str(p) for p in (allowed.get("places") or [])][:40],
@@ -173,7 +222,14 @@ class RespostaInvalida(Exception):
 
 def limpar_fala(raw: str) -> str:
     text = _THINK_RE.sub("", str(raw or ""))
+    text = _EMOJI_RE.sub("", text)
+    text = _ASTERISCOS_RE.sub("", text)
+    text = _REFS_RE.sub("", text)
+    text = _META_PAREN_RE.sub("", text)
+    text = re.sub(r"\s+([,.!?…])", r"\1", text)
     text = re.sub(r"\s+", " ", text).strip().strip('"').strip()
+    if text and text[0].islower():
+        text = text[0].upper() + text[1:]
     if len(text) > MAX_FALA:
         cut = text[:MAX_FALA]
         last = max(cut.rfind("."), cut.rfind("!"), cut.rfind("?"))
@@ -197,17 +253,40 @@ def extrair_json(raw: str) -> Any:
         raise RespostaInvalida("json_invalido", "JSON malformado") from exc
 
 
+def reparar_truncado(raw: str) -> Optional[dict[str, Any]]:
+    """Recupera a fala de um JSON cortado pelo limite de tokens (só a fala, sem ações)."""
+    m = _FALA_TRUNCADA_RE.search(_THINK_RE.sub("", str(raw or "")))
+    if not m:
+        return None
+    try:
+        fala = json.loads('"' + m.group(1).rstrip("\\") + '"')
+    except json.JSONDecodeError:
+        fala = m.group(1)
+    fala = str(fala).strip()
+    fim = max(fala.rfind("."), fala.rfind("!"), fala.rfind("?"))
+    if fim < 10:
+        return None
+    return {"fala": fala[: fim + 1], "emocao": "neutra", "intencao": "conversar", "memoria_referenciada_ids": []}
+
+
 def validar_resposta(raw: str, perm: Permissoes) -> RespostaValidada:
     """Valida a saída do modelo. Levanta ``RespostaInvalida`` se a fala for inutilizável."""
-    data = extrair_json(raw)
+    descartes: list[str] = []
+    try:
+        data = extrair_json(raw)
+    except RespostaInvalida:
+        data = reparar_truncado(raw)
+        if data is None:
+            raise
+        descartes.append("json_reparado")
     if not isinstance(data, dict):
         raise RespostaInvalida("json_invalido", "o JSON não é um objeto")
-    descartes: list[str] = []
     try:
         resp = RespostaMorador.model_validate(data)
     except ValidationError as exc:
         raise RespostaInvalida("json_fora_do_contrato", str(exc.errors()[:2])) from exc
     fala = limpar_fala(resp.fala)
+    fala = _checar_conhecimento(fala, perm, descartes)
     if len(fala) < MIN_FALA:
         raise RespostaInvalida("fala_vazia", "fala vazia")
     if quebra_personagem(fala):
@@ -265,12 +344,16 @@ def validar_resposta(raw: str, perm: Permissoes) -> RespostaValidada:
     return RespostaValidada(fala, emocao, intencao, memoria_ids, acao, params, descartes)
 
 
-def validar_falas_entre_moradores(raw: str) -> tuple[str, str]:
+def validar_falas_entre_moradores(raw: str, a_id: str = "a", b_id: str = "b", nome_a: str = "", nome_b: str = "") -> tuple[str, str]:
     data = extrair_json(raw)
     if not isinstance(data, dict):
         raise RespostaInvalida("json_invalido")
-    a = limpar_fala(data.get("fala_a", ""))[:140]
-    b = limpar_fala(data.get("fala_b", ""))[:140]
+    ka, kb = chaves_falas(a_id, b_id)
+    a = limpar_fala(data.get(ka, data.get("fala_a", "")))[:140]
+    b = limpar_fala(data.get(kb, data.get("fala_b", "")))[:140]
+    # Cada um chamando a si mesmo pelo nome indica falas trocadas: desfaz a troca.
+    if nome_a and nome_b and _norm(a).startswith(_norm(nome_a)) and _norm(b).startswith(_norm(nome_b)):
+        a, b = b, a
     if len(a) < MIN_FALA or len(b) < MIN_FALA:
         raise RespostaInvalida("fala_vazia")
     if quebra_personagem(a) or quebra_personagem(b):
@@ -289,3 +372,31 @@ def validar_plano(raw: str, opcoes: list[str]) -> tuple[str, str]:
     if quebra_personagem(motivo):
         motivo = ""
     return opcao, motivo
+
+
+def _checar_conhecimento(fala: str, perm: Permissoes, descartes: list[str]) -> str:
+    """Barreira contra invenções sobre o mundo.
+
+    - "Ouvi dizer..." sem nenhum rumor conhecido: a frase sai; se o que sobrar não
+      disser claramente que não sabe, a resposta inteira é recusada (fallback).
+    - Afirmação sobre um morador citado de quem este morador não sabe nada
+      (sem marcas de "não sei"): resposta recusada (fallback).
+    """
+    frases = [f for f in re.split(r"(?<=[.!?…])\s+", fala) if f.strip()]
+    if not perm.conhece_rumores and any(_BOATO_RE.search(f) for f in frases):
+        frases = [f for f in frases if not _BOATO_RE.search(f)]
+        descartes.append("boato_sem_fonte")
+        if not any(_NAO_SEI_RE.search(f) for f in frases):
+            raise RespostaInvalida("boato_sem_fonte", "o morador inventou um boato")
+    for f in frases:
+        nf = _norm(f)
+        if re.search(r"\bn[aã]o (vi|estava|sei)\b", nf):
+            for nome in perm.testemunhados:
+                if re.search(r"\b" + re.escape(nome) + r"\b", nf):
+                    raise RespostaInvalida("contradiz_memoria", f"negou ter visto {nome}, mas lembra")
+        if _NAO_SEI_RE.search(nf) or nf.rstrip().endswith("?"):
+            continue
+        for nome in perm.desconhecidos:
+            if re.search(r"\b" + re.escape(nome) + r"\b", nf):
+                raise RespostaInvalida("afirmacao_sem_base", f"afirmou algo sobre {nome} sem saber")
+    return " ".join(frases).strip()

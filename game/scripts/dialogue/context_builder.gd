@@ -123,6 +123,11 @@ static func build(npc: NpcState, sim: Simulation, message: String, history: Arra
 		var other: NpcState = sim.npcs[rid]
 		var r: Dictionary = sim.relationships.get_rel(npc.id, rid)
 		var facts := []
+		var witnessed := false
+		for m in sim.memories.list_for(npc.id):
+			if sim.day - int(m["day"]) <= 1 and m["type"] in ["npc_interaction", "observation"] and (m["participants"] as Array).has(rid) and m.get("origin", "") in ["participacao", "observacao"]:
+				witnessed = true
+				break
 		for m in sim.memories.retrieve(npc.id, {"participants": [rid], "now_abs": sim.now_abs()}, 6):
 			if (m["participants"] as Array).has(rid):
 				var f := _fact_of(m)
@@ -138,6 +143,7 @@ static func build(npc: NpcState, sim: Simulation, message: String, history: Arra
 			"affinity": snappedf(float(r["affinity"]), 0.1),
 			"opinion": _opinion(sim, npc.id, rid),
 			"known_facts": facts,
+			"witnessed": witnessed,
 		})
 	var def := npc.def
 	return {

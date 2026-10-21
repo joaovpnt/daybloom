@@ -111,7 +111,7 @@ class DialogueService:
             npc_id=request.npc_id,
             messages=build_messages(request),
             fmt=contracts.json_schema_resposta(),
-            options={"num_predict": 220, "temperature": 0.7},
+            options={"num_predict": 240, "temperature": 0.55},
             dedup_key=f"dialogo:{request.exchange_id}",
             supersede_key=f"dialogo:{request.npc_id}",
             max_wait_s=20.0,
@@ -187,7 +187,7 @@ class DialogueService:
             npc_id=request.npc_id,
             messages=prompts.build_initiative_messages(request.context, request.reason, request.detail),
             fmt=contracts.json_schema_resposta(),
-            options={"num_predict": 160, "temperature": 0.75},
+            options={"num_predict": 140, "temperature": 0.6},
             dedup_key=f"iniciativa:{request.npc_id}:{request.reason}:{request.detail[:40]}",
             supersede_key=f"iniciativa:{request.npc_id}",
             max_wait_s=12.0,
@@ -215,7 +215,9 @@ class DialogueService:
             kind="conversa_moradores",
             npc_id=f"{request.context.get('a', {}).get('id', '')}+{request.context.get('b', {}).get('id', '')}",
             messages=prompts.build_npc_chat_messages(request.context),
-            fmt=contracts.json_schema_falas_entre_moradores(),
+            fmt=contracts.json_schema_falas_entre_moradores(
+                str(request.context.get("a", {}).get("id", "a")), str(request.context.get("b", {}).get("id", "b"))
+            ),
             options={"num_predict": 90, "temperature": 0.8},
             dedup_key=f"npc_chat:{request.request_id}",
             max_wait_s=8.0,
@@ -224,7 +226,14 @@ class DialogueService:
         if not result.ok:
             return NpcChatResponse(request_id=request.request_id, source="fallback", reason=result.reason)
         try:
-            a, b = contracts.validar_falas_entre_moradores(result.content)
+            ctx = request.context
+            a, b = contracts.validar_falas_entre_moradores(
+                result.content,
+                str(ctx.get("a", {}).get("id", "a")),
+                str(ctx.get("b", {}).get("id", "b")),
+                str(ctx.get("a", {}).get("name", "")),
+                str(ctx.get("b", {}).get("name", "")),
+            )
         except contracts.RespostaInvalida as exc:
             return NpcChatResponse(request_id=request.request_id, source="fallback", reason=exc.reason)
         return NpcChatResponse(request_id=request.request_id, source="ollama", line_a=a, line_b=b,

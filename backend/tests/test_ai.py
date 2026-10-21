@@ -297,7 +297,7 @@ class ServicoTests(unittest.TestCase):
             ini = run(svc.initiative(InitiativeRequest(exchange_id="i1", npc_id="lila", reason="agradecer_presente",
                                                        detail="tulipa coral", context=contexto())))
             self.assertEqual(ini.source, "ollama")
-            fake.content = json.dumps({"fala_a": "Bom dia, Tobias!", "fala_b": "Bom dia! Pão quentinho?"})
+            fake.content = json.dumps({"fala_de_lila": "Bom dia, Tobias!", "fala_de_tobias": "Bom dia! Pão quentinho?"})
             chat = run(svc.npc_chat(NpcChatRequest(request_id="c1", context={"a": {"id": "lila", "name": "Lila"},
                                                                               "b": {"id": "tobias", "name": "Tobias"},
                                                                               "kind": "friendly_chat", "topic": "pão"})))
@@ -320,3 +320,88 @@ class ServicoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SaneamentoTests(unittest.TestCase):
+    def test_remove_emojis_asteriscos_e_meta(self):
+        perm = c.Permissoes.from_context(contexto())
+        r = c.validar_resposta(resposta(fala="Que lindeza! 😊🌸 *bate palminhas* Vamos regar? (pontuação: 100% de confiança)"), perm)
+        self.assertEqual(r.fala, "Que lindeza! Vamos regar?")
+
+    def test_boato_sem_fonte_e_removido(self):
+        ctx = contexto(known_events=[])
+        perm = c.Permissoes.from_context(ctx)
+        self.assertFalse(perm.conhece_rumores)
+        r = c.validar_resposta(resposta(fala="Não vi a briga. Ouvi dizer que ele passou mal.", intencao="nao_sei"), perm)
+        self.assertEqual(r.fala, "Não vi a briga.")
+        self.assertIn("boato_sem_fonte", r.descartes)
+
+    def test_boato_com_fonte_e_mantido(self):
+        perm = c.Permissoes.from_context(contexto())  # contém um rumor da Pipa
+        self.assertTrue(perm.conhece_rumores)
+        r = c.validar_resposta(resposta(fala="Ouvi dizer, pela Pipa, que Ravena e Bento discutiram."), perm)
+        self.assertIn("Ouvi dizer", r.fala)
+
+    def test_so_boato_vira_fallback(self):
+        perm = c.Permissoes.from_context(contexto(known_events=[]))
+        with self.assertRaises(c.RespostaInvalida):
+            c.validar_resposta(resposta(fala="Ouvi dizer que houve uma briga enorme."), perm)
+
+
+class ConhecimentoTests(unittest.TestCase):
+    def _perm(self):
+        ctx = contexto(known_events=[], related_npcs=[
+            {"id": "tobias", "name": "Tobias", "relation_label": "colegas", "known_facts": []},
+            {"id": "bento", "name": "Bento", "relation_label": "amigos", "known_facts": ["Conversou com Bento sobre música."]},
+        ])
+        return c.Permissoes.from_context(ctx)
+
+    def test_afirmacao_sobre_quem_nao_conhece_e_recusada(self):
+        perm = self._perm()
+        self.assertEqual(perm.desconhecidos, ["tobias"])
+        with self.assertRaises(c.RespostaInvalida) as e:
+            c.validar_resposta(resposta(fala="O Tobias estava conversando com a Pipa debaixo da árvore."), perm)
+        self.assertEqual(e.exception.reason, "afirmacao_sem_base")
+
+    def test_admitir_que_nao_sabe_e_aceito(self):
+        perm = self._perm()
+        r = c.validar_resposta(resposta(fala="Não sei nada sobre o Tobias hoje. Quer perguntar pra ele?"), perm)
+        self.assertIn("Tobias", r.fala)
+
+    def test_quem_ele_conhece_pode_ser_citado(self):
+        perm = self._perm()
+        r = c.validar_resposta(resposta(fala="O Bento e eu conversamos sobre música, foi ótimo!"), perm)
+        self.assertIn("Bento", r.fala)
+
+    def test_boato_sem_nao_sei_vira_fallback(self):
+        perm = self._perm()
+        with self.assertRaises(c.RespostaInvalida) as e:
+            c.validar_resposta(resposta(fala="Ah, Tobias e Ravena? Ouvi dizer que brigaram feio."), perm)
+        self.assertEqual(e.exception.reason, "boato_sem_fonte")
+
+
+class ReparoEConsistenciaTests(unittest.TestCase):
+    def test_json_truncado_e_reparado(self):
+        perm = c.Permissoes.from_context(contexto())
+        raw = '{"fala": "Hmpf, chuva? Até que a luz fica bonita. Mas molha as telas e eu odeio esperar seca'
+        r = c.validar_resposta(raw, perm)
+        self.assertEqual(r.fala, "Hmpf, chuva? Até que a luz fica bonita.")
+        self.assertIn("json_reparado", r.descartes)
+        self.assertIsNone(r.acao, "JSON reparado nunca traz ação")
+
+    def test_referencia_de_memoria_some_da_fala(self):
+        perm = c.Permissoes.from_context(contexto())
+        r = c.validar_resposta(resposta(fala="Lembro sim da tulipa (m1)! Ficou linda [m1]."), perm)
+        self.assertEqual(r.fala, "Lembro sim da tulipa! Ficou linda.")
+
+    def test_negar_o_que_viu_e_recusado(self):
+        ctx = contexto(related_npcs=[{"id": "tobias", "name": "Tobias", "known_facts": ["Viu Tobias e Ravena discutindo."], "witnessed": True}])
+        perm = c.Permissoes.from_context(ctx)
+        with self.assertRaises(c.RespostaInvalida) as e:
+            c.validar_resposta(resposta(fala="Não vi o Tobias discutindo com ninguém."), perm)
+        self.assertEqual(e.exception.reason, "contradiz_memoria")
+
+    def test_falas_trocadas_sao_desfeitas(self):
+        raw = json.dumps({"fala_de_pipa": "Pipa, olha essa concha!", "fala_de_marina": "Marina, que demais!"})
+        a, b = c.validar_falas_entre_moradores(raw, "pipa", "marina", "Pipa", "Marina")
+        self.assertEqual((a, b), ("Marina, que demais!", "Pipa, olha essa concha!"))
